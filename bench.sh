@@ -57,16 +57,17 @@ function run_verilator() {
 	echo "config,mean,stddev,median,user,system,min,max" > ${sim_run_results}
 	
 	local bench_file=${BENCHMARKS_DIR}/${bench_name}.futil
+
+	if [[ "${bench_name}" == ffnn-par ]]; then
+	    extra_args="-d papercut -d cell-share"
+	fi
+	
+	default_args="-d group2seq ${extra_args}"
+	profiler_args="-p profiler ${extra_args}"
 	
 	# run verilator --> dat first to get all files necessary
-	if [[ "${bench_name}" == ffnn-par ]]; then
-	    # I really don't like this and maybe I will rewrite the script in python just for this
-	    fud2 ${bench_file} -o ${bench_dir}/baseline-sim-result.json --to dat --through verilator -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_baseline_dir} &> ${LOGS_DIR}/gol-build-baseline-${bench_name}
-	    fud2 ${bench_file} -o ${bench_dir}/inst-sim-result.json --to dat --through verilator -s calyx.args="-p profiler" -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_inst_dir} &> ${LOGS_DIR}/gol-build-inst-${bench_name}
-	else
-	    fud2 ${bench_file} -o ${bench_dir}/baseline-sim-result.json --to dat --through verilator -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_baseline_dir} &> ${LOGS_DIR}/gol-build-baseline-${bench_name}
-	fud2 ${bench_file} -o ${bench_dir}/inst-sim-result.json --to dat --through verilator -s calyx.args="-p profiler" -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_inst_dir} &> ${LOGS_DIR}/gol-build-inst-${bench_name}
-	fi
+        fud2 ${bench_file} -o ${bench_dir}/baseline-sim-result.json --to dat --through verilator -s calyx.args="${default_args}" -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_baseline_dir} &> ${LOGS_DIR}/gol-build-baseline-${bench_name}
+	fud2 ${bench_file} -o ${bench_dir}/inst-sim-result.json --to dat --through verilator -s calyx.args="${profiler_args}" -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_inst_dir} &> ${LOGS_DIR}/gol-build-inst-${bench_name}
 	# fst is weird
 	(
 	    cp -r ${fud2_baseline_dir} ${fud2_baseline_fst_dir}
@@ -155,7 +156,7 @@ function main() {
     results_csv=${DATA_DIR}/results.csv
     echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,bl-with-fst,inst-with-fst" > ${results_csv}
     
-    for bench_file in $( ls ${BENCHMARKS_DIR}/* | grep futil$ ); do
+    for bench_file in $( ls ${BENCHMARKS_DIR}/* | grep futil$ | grep ffnn-par ); do
 	bench_name=$( basename "${bench_file}" | cut -d. -f1 )
 	bench_dir=${DATA_DIR}/${bench_name}
 	mkdir ${bench_dir}
