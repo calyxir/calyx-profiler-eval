@@ -59,8 +59,14 @@ function run_verilator() {
 	local bench_file=${BENCHMARKS_DIR}/${bench_name}.futil
 	
 	# run verilator --> dat first to get all files necessary
-	fud2 ${bench_file} -o ${bench_dir}/baseline-sim-result.json --to dat --through verilator -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_baseline_dir} &> ${LOGS_DIR}/gol-build-baseline-${bench_name}
+	if [[ "${bench_name}" == ffnn-par ]]; then
+	    # I really don't like this and maybe I will rewrite the script in python just for this
+	    fud2 ${bench_file} -o ${bench_dir}/baseline-sim-result.json --to dat --through verilator -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_baseline_dir} &> ${LOGS_DIR}/gol-build-baseline-${bench_name}
+	    fud2 ${bench_file} -o ${bench_dir}/inst-sim-result.json --to dat --through verilator -s calyx.args="-p profiler" -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_inst_dir} &> ${LOGS_DIR}/gol-build-inst-${bench_name}
+	else
+	    fud2 ${bench_file} -o ${bench_dir}/baseline-sim-result.json --to dat --through verilator -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_baseline_dir} &> ${LOGS_DIR}/gol-build-baseline-${bench_name}
 	fud2 ${bench_file} -o ${bench_dir}/inst-sim-result.json --to dat --through verilator -s calyx.args="-p profiler" -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_inst_dir} &> ${LOGS_DIR}/gol-build-inst-${bench_name}
+	fi
 	# fst is weird
 	(
 	    cp -r ${fud2_baseline_dir} ${fud2_baseline_fst_dir}
