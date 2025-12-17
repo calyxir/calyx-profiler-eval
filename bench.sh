@@ -17,7 +17,6 @@ DATA_DIR=${SCRIPT_DIR}/data/generated-data
 LOGS_DIR=${DATA_DIR}/logs
 SCRATCH_DIR=${DATA_DIR}/scratch
 
-# calyx_passes="-p validate -p "
 WARMUP_COUNT=5 # copied from sundew eval
 RUN_COUNT=10 # 30 in sundew eval
 
@@ -37,7 +36,7 @@ function produce_probe_nums() {
 	local bench_dir=$2
 	local bench_name=$3
 
-	( ${CALYX_DIR}/target/debug/calyx ${bench_file} -p profiler -x profiler-instrumentation:emit-probe-stats=${bench_dir}/probe-stats.json ) &> ${LOGS_DIR}/gol-compile-${bench_name}
+	( ${CALYX_DIR}/target/debug/calyx ${bench_file} -p compile-invoke -p uniquefy-enables -p profiler-instrumentation -x profiler-instrumentation:emit-probe-stats=${bench_dir}/probe-stats.json ) &> ${LOGS_DIR}/gol-compile-${bench_name}
     )
 }
 
@@ -156,7 +155,7 @@ function main() {
     results_csv=${DATA_DIR}/results.csv
     echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,bl-with-fst,inst-with-fst" > ${results_csv}
     
-    for bench_file in $( ls ${BENCHMARKS_DIR}/* | grep futil$ | grep ffnn-par ); do
+    for bench_file in $( ls ${BENCHMARKS_DIR}/* | grep futil$ ); do
 	bench_name=$( basename "${bench_file}" | cut -d. -f1 )
 	bench_dir=${DATA_DIR}/${bench_name}
 	mkdir ${bench_dir}
