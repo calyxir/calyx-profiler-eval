@@ -14,6 +14,7 @@ SCRIPT_DIR=$( cd $( dirname $0 ) && pwd )
 
 BENCHMARKS_DIR=${SCRIPT_DIR}/benchmarks
 DATA_DIR=${SCRIPT_DIR}/data/generated-data
+GEN_CALYX_BENCH_DIR=${DATA_DIR}/futil-files
 LOGS_DIR=${DATA_DIR}/logs
 SCRATCH_DIR=${DATA_DIR}/scratch
 
@@ -29,6 +30,7 @@ if [ -d ${DATA_DIR} ]; then
 fi
 mkdir -p ${DATA_DIR}
 mkdir -p ${LOGS_DIR}
+mkdir -p ${GEN_CALYX_BENCH_DIR}
 
 function produce_probe_nums() {
     (
@@ -40,10 +42,25 @@ function produce_probe_nums() {
     )
 }
 
+function generate_calyx_file() {
+    local bench_file=$1
+    local bench_name=$2
+
+    if [[ "${bench_file}" == "*.futil" ]]; then
+	cp ${bench_file} ${GEN_CALYX_BENCH_DIR}
+	return
+    elif [[ "${bench_file}" == "*strict_6flow_test.py" ]]; then
+	extra_opt="-s py.args=\"20000 --keepgoing\""
+    fi
+    
+    fud2 ${bench_file} -o ${GEN_CALYX_BENCH_DIR}/${bench_name}.futil "${extra_opt}"
+}
+
 function run_verilator() {
     (
-	local bench_name=$1
-	local bench_dir=$2
+	local bench_file=$1
+	local bench_name=$2
+	local bench_dir=$3
 	
 	# baseline: no instrumentation
 	local fud2_baseline_dir=${bench_dir}/fud2-baseline
@@ -55,8 +72,6 @@ function run_verilator() {
 	local sim_run_results=${bench_dir}/sim_run_results.csv
 	echo "config,mean,stddev,median,user,system,min,max" > ${sim_run_results}
 	
-	local bench_file=${BENCHMARKS_DIR}/${bench_name}.futil
-
 	if [[ "${bench_name}" == ffnn-par ]]; then
 	    extra_args="-d papercut -d cell-share"
 	fi
@@ -130,7 +145,38 @@ function run_verilator() {
     )
 }
 
-function process_results() {
+function run_profiler() {
+    local bench_file=$1
+    local bench_name=$2
+    local bench_dir=$3
+
+    if [[ "${bench_file}" == *".fuse" ]]; then
+	profiler_type="dahlia-profiler"
+    elif [[ "${bench_file}" == *".py" ]]; then
+	profiler_type="calyx-py-profiler"
+    else
+	profiler_type="profiler"
+    fi
+    echo "Profiler type: ${profiler_type}"
+
+    if [[ "${bench_name}" == "strict_6flow_test" ]]; then
+	extra_args="-s profiler.py-args=\"20000 --keepgoing\""
+    elif [[ "${bench_name}" == ffnn-par ]]; then
+	extra_args="-s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share\""
+    fi
+
+    fud2_dir=${bench_dir}/fud2
+    hf_file=${bench_dir}/hf-profiler.csv
+    svg_file=${bench_dir}/f.svg
+	
+    command="fud2 ${bench_file} -o ${svg_file} --through ${profiler_type} -s sim.data=${bench_file}.data ${extra_args}; rm ${svg_file}"
+
+    echo ${command}
+
+    ( hyperfine "${command}" --warmup ${WARMUP_COUNT} --runs ${RUN_COUNT} --export-csv ${hf_file} ) &> ${bench_dir}/gol-profiler-hyperfine # --show-output to debug
+}
+
+function process_verilator_results() {
     local bench_name=$1
     local bench_dir=$2
     local results_csv=$3
@@ -155,16 +201,20 @@ function main() {
     results_csv=${DATA_DIR}/results.csv
     echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,bl-with-fst,inst-with-fst" > ${results_csv}
     
-    for bench_file in $( ls ${BENCHMARKS_DIR}/* | grep futil$ ); do
+    for bench_file in $( ls ${BENCHMARKS_DIR}/* | grep -e futil$ -e fuse$ -e py$ | grep strict ); do
 	bench_name=$( basename "${bench_file}" | cut -d. -f1 )
-	bench_dir=${DATA_DIR}/${bench_name}
-	mkdir ${bench_dir}
-
 	echo =============${bench_name}
+	bench_dir=${DATA_DIR}/${bench_name}
+	mkdir ${bench_dir}	
+	
+	# generate_calyx_file ${bench_file} ${bench_name}
+	# calyx_file=${GEN_CALYX_BENCH_DIR}/${bench_name}.futil
 
-	produce_probe_nums ${bench_file} ${bench_dir} ${bench_name}
-	run_verilator ${bench_name} ${bench_dir}
-	process_results ${bench_name} ${bench_dir} ${results_csv}
+	# produce_probe_nums ${calyx_file} ${bench_dir} ${bench_name}
+	# run_verilator ${calyx_file} ${bench_name} ${bench_dir}
+	# process_verilator_results ${bench_name} ${bench_dir} ${results_csv}
+
+	run_profiler ${bench_file} ${bench_name} ${bench_dir}
     done
 }
 
