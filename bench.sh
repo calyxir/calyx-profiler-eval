@@ -46,10 +46,10 @@ function generate_calyx_file() {
     local bench_file=$1
     local bench_name=$2
 
-    if [[ "${bench_file}" == "*.futil" ]]; then
+    if [[ "${bench_file}" == *".futil" ]]; then
 	cp ${bench_file} ${GEN_CALYX_BENCH_DIR}
 	return
-    elif [[ "${bench_file}" == "*strict_6flow_test.py" ]]; then
+    elif [[ "${bench_file}" == *"strict_6flow_test.py" ]]; then
 	extra_opt="-s py.args=\"20000 --keepgoing\""
     fi
     
@@ -150,12 +150,17 @@ function run_profiler() {
     local bench_name=$2
     local bench_dir=$3
 
+    local sim_run_results=${bench_dir}/sim_run_results.csv
+    
     if [[ "${bench_file}" == *".fuse" ]]; then
 	profiler_type="dahlia-profiler"
+	profscript_extra_args="--dahlia-parent-map parent-map.json --adl-mapping-file adl-metadata.json"
     elif [[ "${bench_file}" == *".py" ]]; then
 	profiler_type="calyx-py-profiler"
+	profscript_extra_args="--adl-mapping-file adl-metadata.json"
     else
 	profiler_type="profiler"
+	profscript_extra_args=""
     fi
     echo "Profiler type: ${profiler_type}"
 
@@ -166,17 +171,34 @@ function run_profiler() {
     fi
 
     fud2_dir=${bench_dir}/fud2
-    hf_file=${bench_dir}/hf-profiler.csv
+    hf_file=${bench_dir}/hf-profiler-e2e.csv
     svg_file=${bench_dir}/f.svg
 	
-    command="fud2 ${bench_file} -o ${svg_file} --through ${profiler_type} -s sim.data=${bench_file}.data ${extra_args}; rm ${svg_file}"
+    command="fud2 ${bench_file} -o ${svg_file} --through ${profiler_type} -s sim.data=${bench_file}.data ${extra_args}"
+    prep_command="rm -f ${svg_file}}"
+    echo "====Running e2e profiler runs..."
 
-    echo ${command}
+    ( hyperfine "${command}" --prepare "${prep_command}" --warmup ${WARMUP_COUNT} --runs ${RUN_COUNT} --export-csv ${hf_file} ) &> ${bench_dir}/gol-profiler-e2e-hyperfine # --show-output to debug
+    echo "profiler-e2e,"$( tail -n +2 ${hf_file} | cut -d, -f2- ) >> ${sim_run_results}
 
-    ( hyperfine "${command}" --warmup ${WARMUP_COUNT} --runs ${RUN_COUNT} --export-csv ${hf_file} ) &> ${bench_dir}/gol-profiler-hyperfine # --show-output to debug
+    # run fud2 once to get all relevant files
+    local fud2_profiler=${bench_dir}/fud2-profiler
+    (
+	eval "${command} --dir ${fud2_profiler}"
+    ) &> ${bench_dir}/gol-collect-profiler-fud2
+
+    
+    python_command="profiler instrumented.vcd cells.json fsm.json shared-cells.json enable-par-track.json path-descriptors.json profiler-out2 f.folded --ctrl-pos-file ctrl-pos.json  ${profscript_extra_args}"
+    hf_profscript=${bench_dir}/hf-profiler-script.csv
+
+    (
+	cd ${fud2_profiler}
+	hyperfine "${command}" --warmup ${WARMUP_COUNT} --runs ${RUN_COUNT} --export-csv ${hf_profscript}
+    ) &> ${bench_dir}/gol-profiler-script-hyperfine
+    echo "profiler-script,"$( tail -n +2 ${hf_profscript} | cut -d, -f2- ) >> ${sim_run_results}
 }
 
-function process_verilator_results() {
+function process_results() {
     local bench_name=$1
     local bench_dir=$2
     local results_csv=$3
@@ -192,29 +214,31 @@ function process_verilator_results() {
     it_normal=$( grep "inst-wo-vcd" ${sim_run_results} | cut -d, -f2 )
     it_vcd=$( grep "inst-with-vcd" ${sim_run_results} | cut -d, -f2 )
     it_fst=$( grep "inst-with-fst" ${sim_run_results} | cut -d, -f2 )
+    p_e2e=$( grep "profiler-e2e" ${sim_run_results} | cut -d, -f2 )
+    p_script=$( grep "profiler-script" ${sim_run_results} | cut -d, -f2 )
     
-    echo "${bench_name},${probe_count},$bl_normal,$it_normal,$bl_vcd,$it_vcd,$bl_fst,$it_fst" >> ${results_csv}
+    echo "${bench_name},${probe_count},$bl_normal,$it_normal,$bl_vcd,$it_vcd,$bl_fst,$it_fst,${p_script},${p_e2e}" >> ${results_csv}
 }
 
 function main() {
 
     results_csv=${DATA_DIR}/results.csv
-    echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,bl-with-fst,inst-with-fst" > ${results_csv}
+    echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,bl-with-fst,inst-with-fst,profiler-script,profiler-e2e" > ${results_csv}
     
-    for bench_file in $( ls ${BENCHMARKS_DIR}/* | grep -e futil$ -e fuse$ -e py$ | grep strict ); do
+    for bench_file in $( cat ${BENCHMARKS_DIR}/order.txt | grep -v "#" | sed "s/^/${BENCHMARKS_DIR}\//g" ); do
 	bench_name=$( basename "${bench_file}" | cut -d. -f1 )
 	echo =============${bench_name}
 	bench_dir=${DATA_DIR}/${bench_name}
 	mkdir ${bench_dir}	
 	
-	# generate_calyx_file ${bench_file} ${bench_name}
-	# calyx_file=${GEN_CALYX_BENCH_DIR}/${bench_name}.futil
+	generate_calyx_file ${bench_file} ${bench_name}
+	calyx_file=${GEN_CALYX_BENCH_DIR}/${bench_name}.futil
 
-	# produce_probe_nums ${calyx_file} ${bench_dir} ${bench_name}
-	# run_verilator ${calyx_file} ${bench_name} ${bench_dir}
-	# process_verilator_results ${bench_name} ${bench_dir} ${results_csv}
-
+	produce_probe_nums ${calyx_file} ${bench_dir} ${bench_name}
+	run_verilator ${calyx_file} ${bench_name} ${bench_dir}
 	run_profiler ${bench_file} ${bench_name} ${bench_dir}
+	process_results ${bench_name} ${bench_dir} ${results_csv}
+
     done
 }
 
