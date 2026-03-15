@@ -46,14 +46,22 @@ function generate_calyx_file() {
     local bench_file=$1
     local bench_name=$2
 
+    echo "generating calyx file..."
+
     if [[ "${bench_file}" == *".futil" ]]; then
 	cp ${bench_file} ${GEN_CALYX_BENCH_DIR}
 	return
     elif [[ "${bench_file}" == *"strict_6flow_test.py" ]]; then
 	extra_opt="-s py.args=\"20000 --keepgoing\""
     fi
-    
-    fud2 ${bench_file} -o ${GEN_CALYX_BENCH_DIR}/${bench_name}.futil "${extra_opt}"
+
+    cmd="fud2 ${bench_file} -o ${GEN_CALYX_BENCH_DIR}/${bench_name}.futil ${extra_opt}"
+
+    (
+	set -o xtrace
+	eval "${cmd}"
+	set +o xtrace
+    ) &> ${bench_dir}/gol-generate-calyx
 }
 
 function run_verilator() {
@@ -86,16 +94,16 @@ function run_verilator() {
 	(
 	    cp -r ${fud2_baseline_dir} ${fud2_baseline_fst_dir}
 	    cd ${fud2_baseline_fst_dir}
-	    rm sim.exe
-	    verilator verilog.sv tb.sv --trace-fst --binary --top-module toplevel -fno-inline -Mdir verilator-fst-out
-	    cp verilator-fst-out/Vtoplevel sim.exe
+	    rm sim_1.exe
+	    verilator verilog_1.sv tb.sv --trace-fst --binary --top-module toplevel -fno-inline -Mdir verilator-fst-out
+	    cp verilator-fst-out/Vtoplevel sim_1.exe
 	) &> ${LOGS_DIR}/gol-build-bl-fst-${bench_name}
 	(
 	    cp -r ${fud2_inst_dir} ${fud2_inst_fst_dir}
 	    cd ${fud2_inst_fst_dir}
-	    rm sim.exe
-	    verilator verilog.sv tb.sv --trace-fst --binary --top-module toplevel -fno-inline -Mdir verilator-fst-out
-	    cp verilator-fst-out/Vtoplevel sim.exe
+	    rm sim_1.exe
+	    verilator verilog_1.sv tb.sv --trace-fst --binary --top-module toplevel -fno-inline -Mdir verilator-fst-out
+	    cp verilator-fst-out/Vtoplevel sim_1.exe
 	) &> ${LOGS_DIR}/gol-build-inst-fst-${bench_name}
 	
 
@@ -106,10 +114,10 @@ function run_verilator() {
 	    hf_wo_vcd=${bench_dir}/hf-sim-baseline-normal.csv
 	    hf_with_vcd=${bench_dir}/hf-sim-baseline-vcd.csv
 	    # without vcd
-	    ( hyperfine "./sim.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=1" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_wo_vcd} ) &> ${LOGS_DIR}/gol-sim-baseline-normal-${bench_name}
+	    ( hyperfine "./sim_1.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=1" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_wo_vcd} ) &> ${LOGS_DIR}/gol-sim-baseline-normal-${bench_name}
 	    echo "bl-wo-vcd,"$(tail -n +2 ${hf_wo_vcd} | cut -d, -f2-) >> ${sim_run_results}
 	    # with vcd
-	    ( hyperfine "./sim.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=0 +OUT=../sim-result.vcd" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_with_vcd} ) &> ${LOGS_DIR}/gol-sim-baseline-vcd-${bench_name}
+	    ( hyperfine "./sim_1.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=0 +OUT=../sim-result.vcd" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_with_vcd} ) &> ${LOGS_DIR}/gol-sim-baseline-vcd-${bench_name}
 	    echo "bl-with-vcd,"$( tail -n +2 ${hf_with_vcd} | cut -d, -f2- ) >> ${sim_run_results}
 	)
 	# run verilator on baseline with fst
@@ -117,7 +125,7 @@ function run_verilator() {
 	    cd ${fud2_baseline_fst_dir}
 	    hf_with_fst=${bench_dir}/hf-sim-baseline-fst.csv
 	    # with fst
-	    ( hyperfine "./sim.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=0 +OUT=../sim-result.fst" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_with_fst} ) &> ${LOGS_DIR}/gol-sim-baseline-fst-${bench_name}
+	    ( hyperfine "./sim_1.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=0 +OUT=../sim-result.fst" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_with_fst} ) &> ${LOGS_DIR}/gol-sim-baseline-fst-${bench_name}
 	    echo "bl-with-fst,"$( tail -n +2 ${hf_with_fst} | cut -d, -f2- ) >> ${sim_run_results}
 	)
 	# run verilator on instrumented
@@ -128,17 +136,17 @@ function run_verilator() {
 	    hf_with_vcd=${bench_dir}/hf-sim-inst-vcd.csv
 	    
 	    # without vcd
-	    ( hyperfine "./sim.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=1"  --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_wo_vcd} ) &> ${LOGS_DIR}/gol-sim-inst-normal-${bench_name}
+	    ( hyperfine "./sim_1.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=1"  --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_wo_vcd} ) &> ${LOGS_DIR}/gol-sim-inst-normal-${bench_name}
 	    echo "inst-wo-vcd,"$(tail -n +2 ${hf_wo_vcd} | cut -d, -f2-) >> ${sim_run_results}
 	    # with vcd
-	    ( hyperfine "./sim.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=0 +OUT=../sim-result.vcd" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_with_vcd} ) &> ${LOGS_DIR}/gol-sim-inst-vcd-${bench_name}
+	    ( hyperfine "./sim_1.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=0 +OUT=../sim-result.vcd" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_with_vcd} ) &> ${LOGS_DIR}/gol-sim-inst-vcd-${bench_name}
 	    echo "inst-with-vcd,"$( tail -n +2 ${hf_with_vcd} | cut -d, -f2- ) >> ${sim_run_results}
 	)
 	(
 	    cd ${fud2_inst_fst_dir}
 	    hf_with_fst=${bench_dir}/hf-sim-inst-fst.csv
 	    # with fst
-	    ( hyperfine "./sim.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=0 +OUT=../sim-result.fst" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_with_fst} ) &> ${LOGS_DIR}/gol-sim-inst-fst-${bench_name}
+	    ( hyperfine "./sim_1.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=0 +OUT=../sim-result.fst" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_with_fst} ) &> ${LOGS_DIR}/gol-sim-inst-fst-${bench_name}
 	    echo "inst-with-fst,"$( tail -n +2 ${hf_with_fst} | cut -d, -f2- ) >> ${sim_run_results}
 	)
 	
@@ -174,26 +182,27 @@ function run_profiler() {
     hf_file=${bench_dir}/hf-profiler-e2e.csv
     svg_file=${bench_dir}/f.svg
 	
-    command="fud2 ${bench_file} -o ${svg_file} --through ${profiler_type} -s sim.data=${bench_file}.data ${extra_args}"
+    command="fud2 ${bench_file} -o ${svg_file} --through ${profiler_type} -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data ${extra_args}"
     prep_command="rm -f ${svg_file}}"
-    echo "====Running e2e profiler runs..."
+    echo "Running e2e profiler runs..."
 
     ( hyperfine "${command}" --prepare "${prep_command}" --warmup ${WARMUP_COUNT} --runs ${RUN_COUNT} --export-csv ${hf_file} ) &> ${bench_dir}/gol-profiler-e2e-hyperfine # --show-output to debug
     echo "profiler-e2e,"$( tail -n +2 ${hf_file} | cut -d, -f2- ) >> ${sim_run_results}
 
+    echo "Running profiler once and keeping directory to check runtime of script..."
     # run fud2 once to get all relevant files
     local fud2_profiler=${bench_dir}/fud2-profiler
     (
 	eval "${command} --dir ${fud2_profiler}"
     ) &> ${bench_dir}/gol-collect-profiler-fud2
 
-    
+    echo "Running hyperfine runs for profiler script..."
     python_command="profiler instrumented.vcd cells.json fsm.json shared-cells.json enable-par-track.json path-descriptors.json profiler-out2 f.folded --ctrl-pos-file ctrl-pos.json  ${profscript_extra_args}"
     hf_profscript=${bench_dir}/hf-profiler-script.csv
 
     (
 	cd ${fud2_profiler}
-	hyperfine "${command}" --warmup ${WARMUP_COUNT} --runs ${RUN_COUNT} --export-csv ${hf_profscript}
+	hyperfine "${python_command}" --warmup ${WARMUP_COUNT} --runs ${RUN_COUNT} --export-csv ${hf_profscript}
     ) &> ${bench_dir}/gol-profiler-script-hyperfine
     echo "profiler-script,"$( tail -n +2 ${hf_profscript} | cut -d, -f2- ) >> ${sim_run_results}
 }
@@ -225,7 +234,8 @@ function main() {
     results_csv=${DATA_DIR}/results.csv
     echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,bl-with-fst,inst-with-fst,profiler-script,profiler-e2e" > ${results_csv}
     
-    for bench_file in $( cat ${BENCHMARKS_DIR}/order.txt | grep -v "#" | sed "s/^/${BENCHMARKS_DIR}\//g" ); do
+    for bench_short_file in $( cat ${BENCHMARKS_DIR}/order.txt | grep -v "#"  ); do
+	bench_file=${BENCHMARKS_DIR}/${bench_short_file}
 	bench_name=$( basename "${bench_file}" | cut -d. -f1 )
 	echo =============${bench_name}
 	bench_dir=${DATA_DIR}/${bench_name}
