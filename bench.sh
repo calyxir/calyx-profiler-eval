@@ -153,13 +153,8 @@ function run_verilator() {
     )
 }
 
-function run_profiler() {
+function get_profiler_type() {
     local bench_file=$1
-    local bench_name=$2
-    local bench_dir=$3
-
-    local sim_run_results=${bench_dir}/sim_run_results.csv
-    
     if [[ "${bench_file}" == *".fuse" ]]; then
 	profiler_type="dahlia-profiler"
 	profscript_extra_args="--dahlia-parent-map parent-map.json --adl-mapping-file adl-metadata.json"
@@ -170,6 +165,29 @@ function run_profiler() {
 	profiler_type="profiler"
 	profscript_extra_args=""
     fi
+
+    echo $profiler_type
+}
+
+function get_profscript_extra_args() {
+    local bench_file=$1
+    if [[ "${bench_file}" == *".fuse" ]]; then
+	profscript_extra_args="--dahlia-parent-map parent-map.json --adl-mapping-file adl-metadata.json"
+    elif [[ "${bench_file}" == *".py" ]]; then
+	profscript_extra_args="--adl-mapping-file adl-metadata.json"
+    else
+	profscript_extra_args=""
+    fi
+
+    echo $profscript_extra_args
+}
+
+function setup_profiler() {
+    local bench_file=$1
+    local bench_name=$2
+    local bench_dir=$3
+
+    profiler_type=$(get_profiler_type $bench_file)
     echo "Profiler type: ${profiler_type}"
 
     if [[ "${bench_name}" == "strict_6flow_test" ]]; then
@@ -191,20 +209,38 @@ function run_profiler() {
 
     echo "Running profiler once and keeping directory to check runtime of script..."
     # run fud2 once to get all relevant files
-    local fud2_profiler=${bench_dir}/fud2-profiler
     (
 	eval "${command} --dir ${fud2_profiler}"
     ) &> ${bench_dir}/gol-collect-profiler-fud2
+}
 
-    echo "Running hyperfine runs for profiler script..."
+function run_python_petal() {
+    local bench_file=$1
+    local bench_dir=$2
+
+    local profscript_extra_args=$( get_profscript_extra_args $bench_file )
+    echo "Running hyperfine runs for python petal script..."
     python_command="profiler instrumented.vcd cells.json fsm.json shared-cells.json enable-par-track.json path-descriptors.json profiler-out2 f.folded --ctrl-pos-file ctrl-pos.json  ${profscript_extra_args}"
-    hf_profscript=${bench_dir}/hf-profiler-script.csv
+    hf_profscript=${bench_dir}/hf-python-petal.csv
 
     (
 	cd ${fud2_profiler}
 	hyperfine "${python_command}" --warmup ${WARMUP_COUNT} --runs ${RUN_COUNT} --export-csv ${hf_profscript}
-    ) &> ${bench_dir}/gol-profiler-script-hyperfine
-    echo "profiler-script,"$( tail -n +2 ${hf_profscript} | cut -d, -f2- ) >> ${sim_run_results}
+    ) &> ${bench_dir}/gol-python-petal-hyperfine
+    echo "python-petal,"$( tail -n +2 ${hf_profscript} | cut -d, -f2- ) >> ${sim_run_results}
+}
+
+function run_petals_wrapper() {
+    local bench_file=$1
+    local bench_name=$2
+    local bench_dir=$3
+
+    sim_run_results=${bench_dir}/sim_run_results.csv
+
+    fud2_profiler=${bench_dir}/fud2-profiler
+    setup_profiler $bench_file $bench_name $bench_dir
+
+    run_python_petal $bench_file $bench_dir
 }
 
 function process_results() {
@@ -224,9 +260,9 @@ function process_results() {
     it_vcd=$( grep "inst-with-vcd" ${sim_run_results} | cut -d, -f2 )
     it_fst=$( grep "inst-with-fst" ${sim_run_results} | cut -d, -f2 )
     p_e2e=$( grep "profiler-e2e" ${sim_run_results} | cut -d, -f2 )
-    p_script=$( grep "profiler-script" ${sim_run_results} | cut -d, -f2 )
+    python_petal=$( grep "python-petal" ${sim_run_results} | cut -d, -f2 )
     
-    echo "${bench_name},${probe_count},$bl_normal,$it_normal,$bl_vcd,$it_vcd,$bl_fst,$it_fst,${p_script},${p_e2e}" >> ${results_csv}
+    echo "${bench_name},${probe_count},$bl_normal,$it_normal,$bl_vcd,$it_vcd,$bl_fst,$it_fst,${python_petal},${p_e2e}" >> ${results_csv}
 }
 
 function main() {
@@ -246,7 +282,9 @@ function main() {
 
 	produce_probe_nums ${calyx_file} ${bench_dir} ${bench_name}
 	run_verilator ${calyx_file} ${bench_name} ${bench_dir}
-	run_profiler ${bench_file} ${bench_name} ${bench_dir}
+	run_petals_wrapper ${bench_file} ${bench_name} ${bench_dir}
+	# run_profiler ${bench_file} ${bench_name} ${bench_dir}
+	# run_rusted_petal ${bench_file} ${bench_name} ${bench_dir}
 	process_results ${bench_name} ${bench_dir} ${results_csv}
 
     done
