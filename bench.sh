@@ -4,9 +4,15 @@ if [ $# -lt 1 ]; then
 fi
 
 CALYX_DIR=$1
+RUSTED_PETAL=${CALYX_DIR}/target/release/petal
 
 if [ ! -d ${CALYX_DIR} ]; then
     echo "${CALYX_DIR} is not a valid directory!"
+    exit 1
+fi
+
+if [ ! -e ${RUSTED_PETAL} ]; then
+    echo "Rusted Petal needs to be compiled in release mode!"
     exit 1
 fi
 
@@ -230,6 +236,19 @@ function run_python_petal() {
     echo "python-petal,"$( tail -n +2 ${hf_profscript} | cut -d, -f2- ) >> ${sim_run_results}
 }
 
+function run_rusted_petal() {
+    local profscript_extra_args=$( get_profscript_extra_args $bench_file )
+    echo "Running hyperfine runs for rusted petal..."
+    rust_command="${RUSTED_PETAL} instrumented.vcd fsm.json path-descriptors.json ctrl-pos.json shared-cells.json --scaled-flame-out rs.folded --flat-flame-out rf.folded"
+    hf_rusted=${bench_dir}/hf-rusted-petal.csv
+
+    (
+	cd ${fud2_profiler}
+	hyperfine "${rust_command}" --warmup ${WARMUP_COUNT} --runs ${RUN_COUNT} --export-csv ${hf_rusted}
+    ) &> ${bench_dir}/gol-rusted-petal-hyperfine
+    echo "rusted-petal,"$( tail -n +2 ${hf_rusted} | cut -d, -f2- ) >> ${sim_run_results}
+}
+
 function run_petals_wrapper() {
     local bench_file=$1
     local bench_name=$2
@@ -241,6 +260,7 @@ function run_petals_wrapper() {
     setup_profiler $bench_file $bench_name $bench_dir
 
     run_python_petal $bench_file $bench_dir
+    run_rusted_petal $bench_file $bench_dir
 }
 
 function process_results() {
@@ -261,14 +281,15 @@ function process_results() {
     it_fst=$( grep "inst-with-fst" ${sim_run_results} | cut -d, -f2 )
     p_e2e=$( grep "profiler-e2e" ${sim_run_results} | cut -d, -f2 )
     python_petal=$( grep "python-petal" ${sim_run_results} | cut -d, -f2 )
+    rusted_petal=$( grep "rusted-petal" ${sim_run_results} | cut -d, -f2 )
     
-    echo "${bench_name},${probe_count},$bl_normal,$it_normal,$bl_vcd,$it_vcd,$bl_fst,$it_fst,${python_petal},${p_e2e}" >> ${results_csv}
+    echo "${bench_name},${probe_count},$bl_normal,$it_normal,$bl_vcd,$it_vcd,$bl_fst,$it_fst,${python_petal},${rusted_petal},${p_e2e}" >> ${results_csv}
 }
 
 function main() {
 
     results_csv=${DATA_DIR}/results.csv
-    echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,bl-with-fst,inst-with-fst,profiler-script,profiler-e2e" > ${results_csv}
+    echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,bl-with-fst,inst-with-fst,python-petal,rusted-petal,profiler-e2e" > ${results_csv}
     
     for bench_short_file in $( cat ${BENCHMARKS_DIR}/order.txt | grep -v "#"  ); do
 	bench_file=${BENCHMARKS_DIR}/${bench_short_file}
