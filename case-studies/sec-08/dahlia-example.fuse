@@ -1,0 +1,7 @@
+decl A: ubit<32>[2];
+decl B: ubit<32>[2];
+
+// Triple values in array x and write it into y
+for (let k: ubit<4> = 0..2) {
+  B[k] := A[k] * 3;
+}

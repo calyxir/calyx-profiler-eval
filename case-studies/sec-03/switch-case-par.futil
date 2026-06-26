@@ -1,0 +1,101 @@
+import "primitives/core.futil";
+import "primitives/memories/comb.futil";
+import "primitives/binary_operators.futil";
+component main() -> () {
+  cells {
+    @external mem = comb_mem_d1(32, 1, 1);
+    r = std_reg(32);
+    ans = std_reg(32);
+    s1 = subroutine_one();
+    s2 = subroutine_two();
+    s3 = subroutine_three();
+    r_out_eq_0_1 = std_eq(32);
+    r_out_eq_1_2 = std_eq(32);
+    r_out_eq_2_3 = std_eq(32);
+  }
+  wires {
+    group read {
+      mem.addr0 = 1'd0;
+      r.in = mem.read_data;
+      r.write_en = 1'd1;
+      read[done] = r.done;
+    }
+    // group write {
+    //   mem.addr0 = 1'd0;
+    //   mem.write_en = 1'd1;
+    //   mem.write_data = r.out;
+    //   write[done] = mem.done;
+    // }
+    r_out_eq_0_1.left = r.out;
+    r_out_eq_0_1.right = 32'd0;
+    r_out_eq_1_2.left = r.out;
+    r_out_eq_1_2.right = 32'd1;
+    r_out_eq_2_3.left = r.out;
+    r_out_eq_2_3.right = 32'd2;
+  }
+  control {
+    seq {
+      read;
+      par {
+        if r_out_eq_0_1.out {
+          invoke s1(in_1=r.out)(out=ans.in);
+        }
+        if r_out_eq_1_2.out {
+          invoke s2(in_1=r.out)(out=ans.in);
+        }
+        if r_out_eq_2_3.out {
+          invoke s3(in_1=r.out)(out=ans.in);
+        }
+      }
+      // write;
+    }
+  }
+}
+component subroutine_one(in_1: 32) -> (out: 32) {
+  cells {
+    r = std_reg(32);
+  }
+  wires {
+    group save {
+      r.in = in_1;
+      r.write_en = 1'd1;
+      save[done] = r.done;
+    }
+    out = r.out;
+  }
+  control {
+    save;
+  }
+}
+component subroutine_two(in_1: 32) -> (out: 32) {
+  cells {
+    r = std_reg(32);
+  }
+  wires {
+    group save {
+      r.in = in_1;
+      r.write_en = 1'd1;
+      save[done] = r.done;
+    }
+    out = r.out;
+  }
+  control {
+    save;
+  }
+}
+component subroutine_three(in_1: 32) -> (out: 32) {
+  cells {
+    r = std_reg(32);
+  }
+  wires {
+    group save {
+      r.in = in_1;
+      r.write_en = 1'd1;
+      save[done] = r.done;
+    }
+    out = r.out;
+  }
+  control {
+    save;
+  }
+}

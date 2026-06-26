@@ -1,0 +1,81 @@
+
+decl in_int: ubit<32>[10][10];
+decl out_int: ubit<32>[10][10];
+
+let state: ubit<32>[2][10][10];
+let temp: ubit<32>[10][10];
+
+let spills: ubit<32> = 1;
+let iterations : ubit<32> = 0;
+let current: ubit<4> = 0;
+let next: ubit<4> = 1;
+
+{
+    for(let i: ubit<32> = 0..10) {
+        for(let j: ubit<32> = 0..10) {
+            let val: ubit<32> = in_int[i][j];
+            state[0][i][j] := val;
+        }
+    }
+    ---
+    for(let i: ubit<32> = 0..10) {
+        for(let j: ubit<32> = 0..10) {
+            let val: ubit<32> = in_int[i][j];
+            state[1][i][j] := val;
+        }
+    }
+    ---
+    while(spills != 0) {
+        spills := 0;
+        for(let y: ubit<32> = 1..9) {
+            for(let x: ubit<32> = 1..9) {
+                let currSand : ubit<32> = state[current][y][x];
+		        let newSand : ubit<32>;
+                // Opt 2: create temporary variables to store each result in
+		        let newSand1 : ubit<32> = 0;
+		        let newSand2 : ubit<32> = 0;
+		        let newSand3 : ubit<32> = 0;
+		        let newSand4 : ubit<32> = 0;
+                if (currSand >= 4) {
+                    newSand := currSand - 4;
+                    spills += (1 as ubit<32>);
+		} else {
+                    newSand := currSand;
+                }
+                ---
+		        let currYm1 : ubit<32> = state[current][y - 1][x];
+		        ---
+		        let currYp1 : ubit<32> = state[current][y + 1][x];
+		        ---
+		        let currXp1 : ubit<32> = state[current][y][x + 1];
+		        ---
+		        let currXm1 : ubit<32> = state[current][y][x - 1];
+		        ---
+                if(currYm1 >= 4) {
+                    newSand1 += (1 as ubit<32>);
+                }
+                if(currYp1 >= 4) {
+                    newSand2 += (1 as ubit<32>);
+                }
+                if(currXp1 >= 4) {
+                    newSand3 += (1 as ubit<32>);
+                }
+                if(currXm1 >= 4) {
+                    newSand4 += (1 as ubit<32>);
+                }
+                ---
+                state[next][y][x] := newSand + newSand1 + newSand2 + newSand3 + newSand4;
+                ---
+            }
+        }
+        iterations += (1 as ubit<32>);
+        current := (current + 1) & 1;
+        next := (next + 1) & 1;
+    }
+    ---
+    for(let i: ubit<32> = 0..10) {
+        for(let j: ubit<32> = 0..10) {
+            out_int[i][j] := state[current][i][j];
+        }
+    }
+}
