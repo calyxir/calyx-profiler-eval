@@ -49,7 +49,7 @@ Vagrant.configure("2") do |config|
 
   #   # system dependencies
   #   apt-get update
-  #   DEBIAN_FRONTEND=noninteractive apt-get -y install xubuntu-core^
+  #   DEBIAN_FRONTEND=noninteractive apt-get -y install xubuntu-core^ 
   #   DEBIAN_FRONTEND=noninteractive apt-get install -y xauth libxrender1 libxtst6 libxi6 jq sbt default-jre default-jdk virtualbox-guest-dkms virtualbox-guest-utils virtualbox-guest-x11 python3-distutils firefox autoconf flex bison parallel
   #   sed -i 's/allowed_users=.*$/allowed_users=anybody/' /etc/X11/Xwrapper.config
   # SHELL
@@ -57,8 +57,10 @@ Vagrant.configure("2") do |config|
 
     # system dependencies
     apt-get update
-    DEBIAN_FRONTEND=noninteractive apt-get -y install xubuntu-core^
-    DEBIAN_FRONTEND=noninteractive apt-get install -y xauth libxrender1 libxtst6 libxi6 jq default-jre default-jdk firefox autoconf flex bison parallel unzip help2man cmake clang ninja-build lightdm lightdm-gtk-greeter ubuntu-desktop xorg gnome-session gnome-shell gnome-terminal gnome-settings-daemon gnome-control-center 
+    DEBIAN_FRONTEND=noninteractive apt-get -y install xubuntu-core lightdm
+    DEBIAN_FRONTEND=noninteractive apt-get install -y xauth libxrender1 libxtst6 libxi6 jq default-jre default-jdk firefox autoconf flex bison parallel unzip help2man cmake clang ninja-build
+    # DEBIAN_FRONTEND=noninteractive apt-get -y ubuntu-desktop-minimal lightdm xorg gnome-session gnome-shell ubuntu-session
+    # lightdm lightdm-gtk-greeter ubuntu-desktop xorg gnome-session gnome-shell gnome-terminal gnome-settings-daemon gnome-control-center 
     sed -i 's/allowed_users=.*$/allowed_users=anybody/' /etc/X11/Xwrapper.config
 
     echo 'export DISPLAY=:0' >> /etc/environment
@@ -129,9 +131,9 @@ sudo make install
     # install fud2
     cargo install --path fud2
     mkdir -p ~/.config
-    echo 'dahlia = \"${HOME}/dahlia/fuse\"\n' > ~/.config/fud2.toml
-    echo '[calyx]\nbase = \"${HOME}/calyx\"\n' >> ~/.config/fud2.toml
-    echo '[flamegraph]\nscript = \"${HOME}/FlameGraph/flamegraph.pl\"\n' >> ~/.config/fud2.toml
+    echo 'dahlia = \"/home/vagrant/dahlia/fuse\"\n' > ~/.config/fud2.toml
+    echo '[calyx]\nbase = \"/home/vagrant/calyx\"\n' >> ~/.config/fud2.toml
+    echo '[flamegraph]\nscript = \"/home/vagrant/FlameGraph/flamegraph.pl\"\n' >> ~/.config/fud2.toml
 
     fud2 env init
     fud2 env activate
