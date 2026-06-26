@@ -58,8 +58,12 @@ Vagrant.configure("2") do |config|
     # system dependencies
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get -y install xubuntu-core^
-    DEBIAN_FRONTEND=noninteractive apt-get install -y xauth libxrender1 libxtst6 libxi6 jq default-jre default-jdk firefox autoconf flex bison parallel unzip help2man
-    # sed -i 's/allowed_users=.*$/allowed_users=anybody/' /etc/X11/Xwrapper.config
+    DEBIAN_FRONTEND=noninteractive apt-get install -y xauth libxrender1 libxtst6 libxi6 jq default-jre default-jdk firefox autoconf flex bison parallel unzip help2man cmake clang ninja-build lightdm lightdm-gtk-greeter ubuntu-desktop xorg gnome-session gnome-shell gnome-terminal gnome-settings-daemon gnome-control-center 
+    sed -i 's/allowed_users=.*$/allowed_users=anybody/' /etc/X11/Xwrapper.config
+
+    echo 'export DISPLAY=:0' >> /etc/environment
+    echo 'export XDG_CURRENT_DESKTOP=GNOME' >> /etc/environment  
+    echo 'export XDG_SESSION_TYPE=x11' >> /etc/environment
 
     # add scala source
     wget --no-verbose https://github.com/sbt/sbt/releases/download/v1.10.10/sbt-1.10.10.zip
@@ -95,6 +99,9 @@ sudo make install
      # python packages
     pip install flit numpy pandas seaborn matplotlib jupyter jupyterlab
 
+    # uv
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
     # rust and rust packages
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     source $HOME/.cargo/env
@@ -122,9 +129,9 @@ sudo make install
     # install fud2
     cargo install --path fud2
     mkdir -p ~/.config
-    echo "dahlia = \"${HOME}/dahlia/fuse\"\n" > ~/.config/fud2.toml
-    echo "[calyx]\nbase = \"${HOME}/calyx\"\n" >> ~/.config/fud2.toml
-    echo "[flamegraph]\nscript = \"${HOME}/FlameGraph/flamegraph.pl\"\n" >> ~/.config/fud2.toml
+    echo 'dahlia = \"${HOME}/dahlia/fuse\"\n' > ~/.config/fud2.toml
+    echo '[calyx]\nbase = \"${HOME}/calyx\"\n' >> ~/.config/fud2.toml
+    echo '[flamegraph]\nscript = \"${HOME}/FlameGraph/flamegraph.pl\"\n' >> ~/.config/fud2.toml
 
     fud2 env init
     fud2 env activate
@@ -150,24 +157,24 @@ sudo make install
     git checkout oopsla-26
     cd ~
 
-    # add Xilinx tools to the path
-    cat /vagrant/Xilinx_profile >> ~/.profile
-    cat /vagrant/Xilinx_profile >> ~/.bashrc
+    # # add Xilinx tools to the path
+    # cat /vagrant/Xilinx_profile >> ~/.profile
+    # cat /vagrant/Xilinx_profile >> ~/.bashrc
 
-    # move Xilinx installer to home
-    if [ -f "/vagrant/Xilinx_Unified_2019.2_1106_2127_Lin64.bin" ]; then
-      cp /vagrant/Xilinx_Unified_2019.2_1106_2127_Lin64.bin ~
-    fi
+    # # move Xilinx installer to home
+    # if [ -f "/vagrant/Xilinx_Unified_2019.2_1106_2127_Lin64.bin" ]; then
+    #   cp /vagrant/Xilinx_Unified_2019.2_1106_2127_Lin64.bin ~
+    # fi
 
-    # move Xilinx installer launcher to Desktop
-    if [ -f "/vagrant/Xilinx_installer.desktop" ]; then
-      cp /vagrant/Xilinx_installer.desktop ~/Desktop
-    fi
+    # # move Xilinx installer launcher to Desktop
+    # if [ -f "/vagrant/Xilinx_installer.desktop" ]; then
+    #   cp /vagrant/Xilinx_installer.desktop ~/Desktop
+    # fi
 
     # make vagrant default user
-    if ! cat /etc/lightdm/lightdm-gtk-greeter.conf | grep "user-session="; then
-       echo "user-session=vagrant" | sudo tee -a /etc/lightdm/lightdm-gtk-greeter.conf
-    fi
+    # if ! cat /etc/lightdm/lightdm-gtk-greeter.conf | grep "user-session="; then
+    #    echo "user-session=vagrant" | sudo tee -a /etc/lightdm/lightdm-gtk-greeter.conf
+    # fi
 
     # allow user to access shared folders
     sudo adduser $(whoami) vboxsf

@@ -22,8 +22,12 @@ target
 
 # emacs
 *~
+\#*
+*\#
+.\#*
 
 data
 
 # vagrant
 .vagrant/
+vagrant-cache
