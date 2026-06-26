@@ -34,6 +34,20 @@ Vagrant.configure("2") do |config|
     vb.memory = "4096"
     vb.cpus = 2
     vb.gui = gui_enabled?
+    vb.cpus = 2
+    vb.memory = 4096
+
+    # Graphics optimizations
+    vb.customize ["modifyvm", :id, "--vram=128"]
+    # vb.customize ["modifyvm", :id, "--accelerate-3d=on"]
+    vb.customize ["setextradata", :id, "GUI/LastGuestSizeHint", "1280,720"]
+
+    # Convenience features
+    vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+    vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+
+    # Network optimization
+    vb.default_nic_type = "virtio"
   end
   #
   # View the documentation for the provider you are using for more
@@ -58,10 +72,10 @@ Vagrant.configure("2") do |config|
     # system dependencies
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get -y install xubuntu-core lightdm
-    DEBIAN_FRONTEND=noninteractive apt-get install -y xauth libxrender1 libxtst6 libxi6 jq default-jre default-jdk firefox autoconf flex bison parallel unzip help2man cmake clang ninja-build
-    # DEBIAN_FRONTEND=noninteractive apt-get -y ubuntu-desktop-minimal lightdm xorg gnome-session gnome-shell ubuntu-session
-    # lightdm lightdm-gtk-greeter ubuntu-desktop xorg gnome-session gnome-shell gnome-terminal gnome-settings-daemon gnome-control-center 
+    Debian_FRONTEND=noninteractive apt-get install -y xauth libxrender1 libxtst6 libxi6 jq default-jre default-jdk firefox autoconf flex bison parallel unzip help2man cmake clang ninja-build
     sed -i 's/allowed_users=.*$/allowed_users=anybody/' /etc/X11/Xwrapper.config
+
+    systemctl daemon-reload
 
     echo 'export DISPLAY=:0' >> /etc/environment
     echo 'export XDG_CURRENT_DESKTOP=GNOME' >> /etc/environment  
@@ -80,10 +94,11 @@ Vagrant.configure("2") do |config|
   # install verilator
   config.vm.provision "shell", privileged: false, inline: <<-SHELL
     sudo apt-get install -y git make autoconf g++ flex bison libfl2 libfl-dev
+    systemctl daemon-reload
     git clone https://github.com/verilator/verilator
 cd verilator
 git pull
-git checkout master
+git checkout v5.042
 autoconf
 ./configure
 make
@@ -137,17 +152,6 @@ sudo make install
 
     fud2 env init
     fud2 env activate
-
-    # git clone https://github.com/cucapra/futil.git
-    # cd futil
-    # cargo build
-    # ln -s $(realpath ./target/debug/futil) ~/.local/bin/futil
-    # cd fud
-    # flit install
-    # mkdir -p ~/.config
-    # fud config global.futil_directory "/home/vagrant/futil"
-    # fud config stages.futil.exec "futil"
-    # cd ~
 
     # make sure Desktop exists
     mkdir -p ~/Desktop
