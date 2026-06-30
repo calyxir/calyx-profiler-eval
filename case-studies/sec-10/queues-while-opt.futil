@@ -493,6 +493,9 @@ component main<"pos"={59}>() -> () {
       not_7.in = reg_3.out;
       and_5.left = lt_6.out;
       and_5.right = 1'd1;
+      opt_compute_keep_looping_reg.in = and_5.out;
+      opt_compute_keep_looping_reg.write_en = 1'd1;
+      opt_compute_keep_looping[done] = opt_compute_keep_looping_reg.done;
     }
     group lower_has_ans<"pos"={90}> {
       reg_1.in = 1'd0;
@@ -534,7 +537,10 @@ component main<"pos"={59}>() -> () {
     }
   }
   control {
-    @pos{99} while and_5.out with Compute_keep_looping {
+  seq {
+    @pos{99} opt_compute_keep_looping;
+    @pos{99} while opt_compute_keep_looping_reg.out {
+    // @pos{99} while and_5.out with Compute_keep_looping {
       @pos{99} seq {
         @pos{99} lower_has_ans;
         @pos{99} lower_err;
@@ -550,7 +556,9 @@ component main<"pos"={59}>() -> () {
         }
 
         @pos{99} reg_4_incr_1_8_group;
+	@pos{99} opt_compute_keep_looping;
       }
+    }
     }
   }
 }
