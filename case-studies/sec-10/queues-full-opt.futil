@@ -128,79 +128,79 @@ component flow_inference<"pos"={19}>(value: 32) -> () {
     @pos{23} and_18 = std_and(1);
   }
   wires {
-    comb group flow_inference_bound_check_0 {
+    // comb group flow_inference_bound_check_0 {
       le_2.left = value;
       le_2.right = 32'd66;
       lt_1.left = 32'd0;
       lt_1.right = 32'd1;
       and_3.left = le_2.out;
       and_3.right = lt_1.out;
-    }
+    // }
     group set_flow_0<"pos"={24}, "promotable"=1> {
       flow.in = 3'd0;
       flow.write_en = 1'd1;
       set_flow_0[done] = flow.done;
     }
-    comb group flow_inference_bound_check_1 {
+    // comb group flow_inference_bound_check_1 {
       le_5.left = value;
       le_5.right = 32'd100;
       lt_4.left = 32'd66;
       lt_4.right = value;
       and_6.left = le_5.out;
       and_6.right = lt_4.out;
-    }
+    // }
     group set_flow_1<"pos"={24}, "promotable"=1> {
       flow.in = 3'd1;
       flow.write_en = 1'd1;
       set_flow_1[done] = flow.done;
     }
-    comb group flow_inference_bound_check_2 {
+    // comb group flow_inference_bound_check_2 {
       le_8.left = value;
       le_8.right = 32'd200;
       lt_7.left = 32'd100;
       lt_7.right = value;
       and_9.left = le_8.out;
       and_9.right = lt_7.out;
-    }
+    // }
     group set_flow_2<"pos"={24}, "promotable"=1> {
       flow.in = 3'd2;
       flow.write_en = 1'd1;
       set_flow_2[done] = flow.done;
     }
-    comb group flow_inference_bound_check_3 {
+    // comb group flow_inference_bound_check_3 {
       le_11.left = value;
       le_11.right = 32'd220;
       lt_10.left = 32'd200;
       lt_10.right = value;
       and_12.left = le_11.out;
       and_12.right = lt_10.out;
-    }
+    // }
     group set_flow_3<"pos"={24}, "promotable"=1> {
       flow.in = 3'd3;
       flow.write_en = 1'd1;
       set_flow_3[done] = flow.done;
     }
-    comb group flow_inference_bound_check_4 {
+    // comb group flow_inference_bound_check_4 {
       le_14.left = value;
       le_14.right = 32'd300;
       lt_13.left = 32'd220;
       lt_13.right = value;
       and_15.left = le_14.out;
       and_15.right = lt_13.out;
-    }
+    // }
     group set_flow_4<"pos"={24}, "promotable"=1> {
       flow.in = 3'd4;
       flow.write_en = 1'd1;
       set_flow_4[done] = flow.done;
     }
-    comb group flow_inference_bound_check_5 {
+    // comb group flow_inference_bound_check_5 {
       le_17.left = value;
       le_17.right = 32'd400;
       lt_16.left = 32'd300;
       lt_16.right = value;
       and_18.left = le_17.out;
       and_18.right = lt_16.out;
-    }
+    // }				
     group set_flow_5<"pos"={24}, "promotable"=1> {
       flow.in = 3'd5;
       flow.write_en = 1'd1;
@@ -209,26 +209,27 @@ component flow_inference<"pos"={19}>(value: 32) -> () {
   }
   control {
     @pos{26} seq {
-      @pos{26} par {
-        @pos{25} if and_3.out with flow_inference_bound_check_0 {
+      // @pos{26} par {
+        @pos{25} if and_3.out { // with flow_inference_bound_check_0 {
           @pos{25} set_flow_0;
-        }
-        @pos{25} if and_6.out with flow_inference_bound_check_1 {
+        } else {
+        @pos{25} if and_6.out { // with flow_inference_bound_check_1 {
           @pos{25} set_flow_1;
-        }
-        @pos{25} if and_9.out with flow_inference_bound_check_2 {
+        } else {
+        @pos{25} if and_9.out { // with flow_inference_bound_check_2 {
           @pos{25} set_flow_2;
-        }
-        @pos{25} if and_12.out with flow_inference_bound_check_3 {
+        } else {
+        @pos{25} if and_12.out { // with flow_inference_bound_check_3 {
           @pos{25} set_flow_3;
-        }
-        @pos{25} if and_15.out with flow_inference_bound_check_4 {
+        } else {
+        @pos{25} if and_15.out { // with flow_inference_bound_check_4 {
           @pos{25} set_flow_4;
-        }
-        @pos{25} if and_18.out with flow_inference_bound_check_5 {
+        } else {
+        @pos{25} if and_18.out { // with flow_inference_bound_check_5 {
           @pos{25} set_flow_5;
         }
-      }
+	} } } } }
+      // }
     }
   }
 }
@@ -386,7 +387,6 @@ component pifo<"pos"={27}>(cmd: 1, value: 32) -> () {
         @pos{55} seq {
           @pos{55} og_hot_store_to_reg;
           @pos{55} raise_err;
-	  // manually desugaring the while group
 	  @pos{53} opt_neq_4_group;
 	  @pos{53} while opt_neq_4_group_reg.out {
           // @pos{53} while neq_4.out with neq_4_group {
@@ -481,19 +481,31 @@ component main<"pos"={59}>() -> () {
     @pos{88} lt_6 = std_lt(32);
     @pos{89} not_7 = std_not(1);
     @pos{98} reg_4_incr_1_8 = std_add(32);
-    // added for optimization
+    // added for optimization attempt
     @pos{99} opt_compute_keep_looping_reg = std_reg(1);
-
   }
   wires {
-    // optimization
+    // optimization attempt start
     group opt_compute_keep_looping<"pos"={99}> {
       lt_6.left = reg_4.out;
       lt_6.right = 32'd20000;
       not_7.in = reg_3.out;
       and_5.left = lt_6.out;
       and_5.right = 1'd1;
+      opt_compute_keep_looping_reg.in = and_5.out;
+      opt_compute_keep_looping_reg.write_en = 1'd1;
+      opt_compute_keep_looping[done] = opt_compute_keep_looping_reg.done;
     }
+    // optimization attempt end
+    // original code start
+    // comb group Compute_keep_looping {
+    //   lt_6.left = reg_4.out;
+    //   lt_6.right = 32'd20000;
+    //   not_7.in = reg_3.out;
+    //   and_5.left = lt_6.out;
+    //   and_5.right = 1'd1;
+    // }
+    // original code end
     group lower_has_ans<"pos"={90}> {
       reg_1.in = 1'd0;
       reg_1.write_en = 1'd1;
@@ -534,7 +546,9 @@ component main<"pos"={59}>() -> () {
     }
   }
   control {
-    @pos{99} while and_5.out with Compute_keep_looping {
+    seq {
+    @pos{99} opt_compute_keep_looping;
+    @pos{99} while opt_compute_keep_looping_reg.out {
       @pos{99} seq {
         @pos{99} lower_has_ans;
         @pos{99} lower_err;
@@ -550,7 +564,9 @@ component main<"pos"={59}>() -> () {
         }
 
         @pos{99} reg_4_incr_1_8_group;
+	@pos{99} opt_compute_keep_looping;
       }
+    }
     }
   }
 }
