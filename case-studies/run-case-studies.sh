@@ -5,12 +5,18 @@ rm -rf ${RESULTS_DIR}; mkdir -p ${RESULTS_DIR}
 
 # cleanup?
 
+
 function setup_dir() {
     # cleanup if directories existed before
     rm -rf petal-runs; mkdir -p petal-runs
     rm -rf outputs; mkdir -p outputs
     rm -rf svgs; mkdir -p svgs
 }
+
+# rounding scheme
+function round() {
+    echo $(printf %.$2f $(echo "scale=$2;(((10^$2)*$1)+0.5)/(10^$2)" | bc))
+};
 
 # Section 3
 echo "Reproducing figures from Section 3: Example"
@@ -68,6 +74,23 @@ echo "Reproducing figures from Section 9: Case Studies: Understanding Compiler C
     cp petal-runs/linear-algebra-3mm-disable-cell-share/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-12b.pftrace
 )
 
+# helper for generating table 2
+function create_table_2() {
+    table_2_file=${RESULTS_DIR}/table2.csv
+    total_cycles=$( jq ".cycles" outputs/queues-original.json )
+    echo "Strategy,Cycles-reduced,%-cycles-reduced" > ${table_2_file}
+    sc_reduced=$( jq ".cycles" outputs/queues-sc-opt.json | xargs -I {} echo "${total_cycles} - {}" )
+    sc_reduced_p=$( round $( echo "${sc_reduced} / ${total_cycles}" | bc -l ) 1 )
+    static_reduced=$( jq ".cycles" outputs/queues-static-opt.json | xargs -I {} echo "(${total_cycles} - ${sc_reduced}) - {}" )
+    static_reduced_p=$( round $( echo "${static_reduced} / ${total_cycles}" | bc -l ) 1 )
+    echo "switch-case,${sc_reduced},${sc_reduced_p}" >> ${table_2_file}
+    while_reduced=$( jq ".cycles" outputs/queues-sc-opt.json | xargs -I {} echo "(${total_cycles} - (${sc_reduced} + ${static_reduced})) - {}" )
+    while_reduced_p=$( round $( echo "${while_reduced} / ${total_cycles}" | bc -l ) 1 )
+    echo "static,${static_reduced},${static_reduced_p}" >> ${table_2_file}
+    echo "switch-case,${sc_reduced},${sc_reduced_p}" >> ${table_2_file}
+    echo "switch-case,${while_reduced},${while_reduced_p}" >> ${table_2_file}
+}
+
 # Section 10
 echo "Reproducing figures from Section 10: Case Studies: Optimizing Calyx User Programs"
 (
@@ -84,11 +107,19 @@ echo "Reproducing figures from Section 10: Case Studies: Optimizing Calyx User P
     cp petal-runs/ffnn-optimized/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-13b.pftrace
 
     # Run Petal on original example while program
+    fud2 while-original.futil -o svgs/while-original.svg --through profiler -s sim.data=while.data --dir petal-runs/while-original
+    # copy timeline view for easier viewing (Figure 17a: Timeline view of example while program)
+    cp petal-runs/while-original/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-17a.pftrace
     
     # Run Petal on manually transformed while program
+    fud2 while-manual.futil -o svgs/while-manual.svg --through profiler -s sim.data=while.data --dir petal-runs/while-manual
+    # copy timeline view for easier viewing (Figure 17b: Timeline view of manually transformed while program)
+    cp petal-runs/while-manual/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-17b.pftrace
 
     # Run Petal on par optimized while program
-    
+    fud2 while-optimized.futil -o svgs/while-optimized.futil --through profiler -s sim.data=while.data --dir petal-runs/while-optimized
+    # copy timeline view for easier viewing (Figure 17c: Timeline view of par optimized while program)
+    cp petal-runs/while-optimized/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-17c.pftrace
 
     # Run Petal on original queues program
     fud2 queues-original.futil -o svgs/queues-original.svg --through profiler -s sim.data=queues.data --dir petal-runs/queues-original
@@ -102,7 +133,8 @@ echo "Reproducing figures from Section 10: Case Studies: Optimizing Calyx User P
     fud2 queues-while-opt.futil -o outputs/queues-while-opt.json --through verilator -s sim.data=queues.data    
     # Run Verilator on fully optimized packet scheduling program
     fud2 queues-full-opt.futil -o outputs/queues-full-opt.json --through verilator -s sim.data=queues.data
-    # TODO: Process intermediate output to reproduce Table 2
+    # Process intermediate output to reproduce Table 2
+    create_table_2
 )
 
 # Section 11

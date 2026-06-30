@@ -34,3 +34,8 @@ vagrant-cache
 
 # scratch directory
 ayaka-sandbox
+
+# generated directories for case study reproduction
+outputs
+svgs
+petal-runs
