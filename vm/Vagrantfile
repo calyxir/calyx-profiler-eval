@@ -72,7 +72,8 @@ Vagrant.configure("2") do |config|
     # system dependencies
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get -y install xubuntu-core lightdm
-    Debian_FRONTEND=noninteractive apt-get install -y xauth libxrender1 libxtst6 libxi6 jq default-jre default-jdk firefox autoconf flex bison parallel unzip help2man cmake clang ninja-build
+    DEBIAN_FRONTEND=noninteractive apt-get install -y xauth libxrender1 libxtst6 libxi6 jq default-jre default-jdk firefox autoconf flex bison parallel unzip help2man cmake clang ninja-build virtualbox-guest-additions-iso build-essential dkms
+    # build-essential dkms
     sed -i 's/allowed_users=.*$/allowed_users=anybody/' /etc/X11/Xwrapper.config
 
     systemctl daemon-reload
@@ -163,19 +164,19 @@ sudo make install
     git checkout oopsla-26
     cd ~
 
-    # # add Xilinx tools to the path
-    # cat /vagrant/Xilinx_profile >> ~/.profile
-    # cat /vagrant/Xilinx_profile >> ~/.bashrc
+    # add Xilinx tools to the path
+    cat /vagrant/Xilinx_profile >> ~/.profile
+    cat /vagrant/Xilinx_profile >> ~/.bashrc
 
-    # # move Xilinx installer to home
-    # if [ -f "/vagrant/Xilinx_Unified_2019.2_1106_2127_Lin64.bin" ]; then
-    #   cp /vagrant/Xilinx_Unified_2019.2_1106_2127_Lin64.bin ~
-    # fi
+    # move Xilinx installer to home
+    if [ -f "/vagrant/Xilinx_Unified_2020.2_1118_1232_Lin64.bin" ]; then
+      cp /vagrant/Xilinx_Unified_2020.2_1118_1232_Lin64.bin ~
+    fi
 
-    # # move Xilinx installer launcher to Desktop
-    # if [ -f "/vagrant/Xilinx_installer.desktop" ]; then
-    #   cp /vagrant/Xilinx_installer.desktop ~/Desktop
-    # fi
+    # move Xilinx installer launcher to Desktop
+    if [ -f "/vagrant/Xilinx_installer.desktop" ]; then
+      cp /vagrant/Xilinx_installer.desktop ~/Desktop
+    fi
 
     # make vagrant default user
     # if ! cat /etc/lightdm/lightdm-gtk-greeter.conf | grep "user-session="; then

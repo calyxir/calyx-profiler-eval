@@ -40,3 +40,6 @@ outputs
 svgs
 petal-runs
 case-studies/results
+
+# Vivado installer
+Xilinx_Unified_*Lin64.bin
