@@ -111,17 +111,19 @@ Many timeline view figures were based on a "zoomed-in" view. Here is a guide on 
 - Figure 11c: Open the `toplevel.main` dropdown and navigate to cycle 8180. The name mapping is the same as above. Note that the paper simplified the detail where `let18` now takes 4 cycles; this is because the multiplication primitive was given the annotation that it _could_ take 4 cycles..
 - Figure 12a: No navigation required.
 - Figure 12b: No navigation required.
-- Figure 13a:
+- Figure 13a: 
 - Figure 13b:
 - Figure 17a: No navigation required.
 - Figure 17b: No navigation required.
 - Figure 17c: No navigation required.
-- Figure 18b: Timeline view of inner for loop iteration in the original program
-- Figure 18c: Timeline view of inner for loop iteration in optimized program
+- Figure 18b: Open the `main` dropdown, the `BL0028: while(spills != 0)` dropdown, the `BL0030: for(let y: ubit<32> = 1..9)` dropdown, and the `BL0031: for(let x: ubit<32> = 1..9)` dropdown. Then, navigate to cycle 1047. The iteration represented in the figure is in cycles 1047-1068 (inclusive).
+  - Note: You may observe that there are iterations of the inner for loop that contain an empty gap where no line is active. This empty gap occurs when the guard in the preceding `if` is `false`. Calyx's `static-promotion` compiler pass allocates four cycles for each `if` and its corresponding body, but since the guard did not pass there was no activity on that specific cycle.
+- Figure 18c: Open the `main` dropdown, the `BL0028: while(spills != 0)` dropdown, the `BL0030: for(let y: ubit<32> = 1..9)` dropdown, and the `BL0031: for(let x: ubit<32> = 1..9)` dropdown. Then, navigate to cycle 993. The iteration represented in the figure is in cycles 993-1008 (inclusive).
 
 
 ### Tables
 
+- Table 
 
 
 # Vivado Results (Estimated time: TODO minutes)
