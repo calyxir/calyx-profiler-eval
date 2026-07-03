@@ -20,12 +20,12 @@ component main() -> () {
       r.write_en = 1'd1;
       read[done] = r.done;
     }
-    // group write {
-    //   mem.addr0 = 1'd0;
-    //   mem.write_en = 1'd1;
-    //   mem.write_data = r.out;
-    //   write[done] = mem.done;
-    // }
+    group write {
+      mem.addr0 = 1'd0;
+      mem.write_en = 1'd1;
+      mem.write_data = r.out;
+      write[done] = mem.done;
+    }
     r_out_eq_0_1.left = r.out;
     r_out_eq_0_1.right = 32'd0;
     r_out_eq_1_2.left = r.out;
@@ -47,7 +47,7 @@ component main() -> () {
           invoke s3(in_1=r.out)(out=ans.in);
         }
       }
-      // write;
+      write;
     }
   }
 }

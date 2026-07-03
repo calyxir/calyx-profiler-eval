@@ -1,5 +1,6 @@
 SCRIPT_DIR=$( cd $( dirname $0 ) && pwd )
-RESULTS_DIR=${SCRIPT_DIR}/results
+CASE_STUDIES_DIR=${SCRIPT_DIR}/case-studies
+RESULTS_DIR=${CASE_STUDIES_DIR}/results
 
 rm -rf ${RESULTS_DIR}; mkdir -p ${RESULTS_DIR}
 
@@ -18,61 +19,67 @@ function round() {
     echo $(printf %.$2f $(echo "scale=$2;(((10^$2)*$1)+0.5)/(10^$2)" | bc))
 };
 
-# # Section 3
-# echo "Reproducing figures from Section 3: Example"
-# (
-#     cd ${SCRIPT_DIR}/sec-03
-#     setup_dir
-#     # Run verilator on original program
-#     fud2 switch-case-par.futil -o outputs/switch-case-par.json --through verilator -s sim.data=switch-case.data
-#     # Run verilator on optimized program
-#     fud2 switch-case-nested-if.futil -o outputs/switch-case-nested-if.json --through verilator -s sim.data=switch-case.data
-#     # Run petal on original program
-#     fud2 switch-case-par.futil -o svgs/switch-case-par.svg --through profiler -s sim.data=switch-case.data --dir petal-runs/switch-case-par
-#     # copy flame graph for easier viewing (Figure 4: switch-case example flame graph)
-#     cp petal-runs/switch-case-par/profiler-out/scaled-flame.svg ${RESULTS_DIR}/fig-4.svg
-#     # copy timeline view for easier viewing (Figure 5: switch-case example timeline view)
-#     cp petal-runs/switch-case-par/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-5.pftrace
-# )
+function reproduce_section_3() {
+    # Section 3
+    echo "Reproducing figures from Section 3: Example"
+    (
+	cd ${CASE_STUDIES_DIR}/sec-03
+	setup_dir
+	# Run verilator on original program
+	fud2 switch-case-par.futil -o outputs/switch-case-par.json --through verilator -s sim.data=switch-case.data
+	# Run verilator on optimized program
+	fud2 switch-case-nested-if.futil -o outputs/switch-case-nested-if.json --through verilator -s sim.data=switch-case.data
+	# Run petal on original program
+	fud2 switch-case-par.futil -o svgs/switch-case-par.svg --through profiler -s sim.data=switch-case.data --dir petal-runs/switch-case-par
+	# copy flame graph for easier viewing (Figure 4: switch-case example flame graph)
+	cp petal-runs/switch-case-par/profiler-out/scaled-flame.svg ${RESULTS_DIR}/fig-4.svg
+	# copy timeline view for easier viewing (Figure 5: switch-case example timeline view)
+	cp petal-runs/switch-case-par/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-5.pftrace
+    )
+}
 
-# # Section 8
-# echo "Reproducing figures from Section 8: Source-level Profiling"
-# (
-#     cd ${SCRIPT_DIR}/sec-08
-#     setup_dir
-#     # Run petal on Dahlia program
-#     fud2 dahlia-example.fuse -o svgs/dahlia-example.svg --through dahlia-profiler -s sim.data=dahlia-example.fuse.data --dir petal-runs/dahlia-example
-#     # copy timeline view for easier viewing (Figure 9d: Calyx timeline view for example Dahlia program)
-#     cp petal-runs/dahlia-example/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-9d.pftrace
-#     # copy timeline view for easier viewing (Figure 9e: Dahlia timeline view for example Dahlia program)
-#     cp petal-runs/dahlia-example/profiler-out/dahlia_timeline_trace.pftrace ${RESULTS_DIR}/fig-9d.pftrace
-# )
+function reproduce_section_8() {
+    # Section 8
+    echo "Reproducing figures from Section 8: Source-level Profiling"
+    (
+	cd ${CASE_STUDIES_DIR}/sec-08
+	setup_dir
+	# Run petal on Dahlia program
+	fud2 dahlia-example.fuse -o svgs/dahlia-example.svg --through dahlia-profiler -s sim.data=dahlia-example.fuse.data --dir petal-runs/dahlia-example
+	# copy timeline view for easier viewing (Figure 9d: Calyx timeline view for example Dahlia program)
+	cp petal-runs/dahlia-example/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-9d.pftrace
+	# copy timeline view for easier viewing (Figure 9e: Dahlia timeline view for example Dahlia program)
+	cp petal-runs/dahlia-example/profiler-out/dahlia_timeline_trace.pftrace ${RESULTS_DIR}/fig-9e.pftrace
+    )
+}
 
-# # Section 9
-# echo "Reproducing figures from Section 9: Case Studies: Understanding Compiler Choices"
-# (
-#     cd ${SCRIPT_DIR}/sec-09
-#     setup_dir
-#     # Run Petal on linear-algebra-2mm
-#     fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm.svg --through dahlia-profiler -s sim.data=linear-algebra-2mm.data --dir petal-runs/linear-algebra-2mm
-#     # copy timeline view for easier viewing (Figure 11c: Zoomed in timeline view with static promotion)
-#     cp petal-runs/linear-algebra-2mm/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-11c.pftrace
-    
-#     # Run Petal on linear-algebra-2mm without static promotion
-#     fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm-disable-static-promotion.svg --through dahlia-profiler -s sim.data=linear-algebra-2mm.data -s profiler.compilation-passes="-p pre-opt -p compile -p post-opt -p lower -d static-promotion" --dir petal-runs/linear-algebra-2mm-disable-static-promotion
-#     # copy timeline view for easier viewing (Figure 11a: Zoomed in timeline view without static promotion)
-#     cp petal-runs/linear-algebra-2mm-disable-static-promotion/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-11a.pftrace
-    
-#     # Run Petal on linear-algebra-3mm
-#     fud2 linear-algebra-3mm.fuse -o svgs/linear-algebra-3mm.svg --through dahlia-profiler -s sim.data=linear-algebra-3mm.data --dir petal-runs/linear-algebra-3mm
-#     # copy timeline view for easier viewing (Figure 12a: Full timeline view for linear-algebra-3mm with resource sharing)
-#     cp petal-runs/linear-algebra-3mm/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-12a.pftrace
-    
-#     # Run Petal on linear-algebra-3mm without resource sharing
-#     fud2 linear-algebra-3mm.fuse -o svgs/linear-algebra-3mm-disable-cell-share.svg --through dahlia-profiler -s profiler.compilation-passes="-p pre-opt -p compile -p post-opt -p lower -d cell-share" -s sim.data=linear-algebra-3mm.data --dir petal-runs/linear-algebra-3mm-disable-cell-share
-#     # copy timeline view for easier viewing (Figure 12b: Full timeline view for linear-algebra-3mm without resource sharing)
-#     cp petal-runs/linear-algebra-3mm-disable-cell-share/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-12b.pftrace
-# )
+function reproduce_section_9() {
+    # Section 9
+    echo "Reproducing figures from Section 9: Case Studies: Understanding Compiler Choices"
+    (
+	cd ${CASE_STUDIES_DIR}/sec-09
+	setup_dir
+	# Run Petal on linear-algebra-2mm
+	fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm.svg --through dahlia-profiler -s sim.data=linear-algebra-2mm.data --dir petal-runs/linear-algebra-2mm
+	# copy timeline view for easier viewing (Figure 11c: Zoomed in timeline view with static promotion)
+	cp petal-runs/linear-algebra-2mm/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-11c.pftrace
+	
+	# Run Petal on linear-algebra-2mm without static promotion
+	fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm-disable-static-promotion.svg --through dahlia-profiler -s sim.data=linear-algebra-2mm.data -s profiler.compilation-passes="-p pre-opt -p compile -p post-opt -p lower -d static-promotion" --dir petal-runs/linear-algebra-2mm-disable-static-promotion
+	# copy timeline view for easier viewing (Figure 11a: Zoomed in timeline view without static promotion)
+	cp petal-runs/linear-algebra-2mm-disable-static-promotion/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-11a.pftrace
+	
+	# Run Petal on linear-algebra-3mm
+	fud2 linear-algebra-3mm.fuse -o svgs/linear-algebra-3mm.svg --through dahlia-profiler -s sim.data=linear-algebra-3mm.data --dir petal-runs/linear-algebra-3mm
+	# copy timeline view for easier viewing (Figure 12a: Full timeline view for linear-algebra-3mm with resource sharing)
+	cp petal-runs/linear-algebra-3mm/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-12a.pftrace
+	
+	# Run Petal on linear-algebra-3mm without resource sharing
+	fud2 linear-algebra-3mm.fuse -o svgs/linear-algebra-3mm-disable-cell-share.svg --through dahlia-profiler -s profiler.compilation-passes="-p pre-opt -p compile -p post-opt -p lower -d cell-share" -s sim.data=linear-algebra-3mm.data --dir petal-runs/linear-algebra-3mm-disable-cell-share
+	# copy timeline view for easier viewing (Figure 12b: Full timeline view for linear-algebra-3mm without resource sharing)
+	cp petal-runs/linear-algebra-3mm-disable-cell-share/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-12b.pftrace
+    )
+}
 
 # helper for generating table 2
 function create_table_2() {
@@ -100,7 +107,7 @@ function reproduce_section_10() {
 # Section 10
 echo "Reproducing figures from Section 10: Case Studies: Optimizing Calyx User Programs"
 (
-    cd ${SCRIPT_DIR}/sec-10
+    cd ${CASE_STUDIES_DIR}/sec-10
     setup_dir
     # # NOTE: Maybe worth adding an option to disable ffnn runs because this will take forever
     # # Run Petal on original ffnn program
@@ -149,7 +156,7 @@ function reproduce_section_11() {
 # Section 11
 echo "Reproducing figures from Section 11: Case Studies: Optimizing ADL programs"
 (
-    cd ${SCRIPT_DIR}/sec-11
+    cd ${CASE_STUDIES_DIR}/sec-11
     setup_dir
     # Run Verilator on original program
     fud2 sandpile-original.fuse -o outputs/sandpile-original.json --through verilator -s sim.data=sandpile.data
@@ -162,5 +169,8 @@ echo "Reproducing figures from Section 11: Case Studies: Optimizing ADL programs
 )
 }
 
-reproduce_section_10
-# reproduce_section_11
+reproduce_section_3
+reproduce_section_8
+reproduce_section_9
+# reproduce_section_10
+reproduce_section_11
