@@ -151,6 +151,10 @@ sudo make install
     echo '[calyx]\nbase = \"/home/vagrant/calyx\"\n' >> ~/.config/fud2.toml
     echo '[flamegraph]\nscript = \"/home/vagrant/FlameGraph/flamegraph.pl\"\n' >> ~/.config/fud2.toml
 
+    # install hardfloat for ffnn
+    cd primitives/float
+    bash get_hardfloat.sh
+
     fud2 env init
     fud2 env activate
 
@@ -169,8 +173,9 @@ sudo make install
     cat /vagrant/Xilinx_profile >> ~/.bashrc
 
     # move Xilinx installer to home
-    if [ -f "/vagrant/Xilinx_Unified_2020.2_1118_1232_Lin64.bin" ]; then
-      cp /vagrant/Xilinx_Unified_2020.2_1118_1232_Lin64.bin ~
+    if [ -f "/vagrant/Xilinx_Unified_2022.2_1014_8888_Lin64.bin" ]; then
+      cp /vagrant/Xilinx_Unified_2022.2_1014_8888_Lin64.bin ~
+      sudo chmod +o Xilinx_Unified_2022.2_1014_8888_Lin64.bin
     fi
 
     # move Xilinx installer launcher to Desktop
