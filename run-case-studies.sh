@@ -60,12 +60,12 @@ function reproduce_section_9() {
 	cd ${CASE_STUDIES_DIR}/sec-09
 	setup_dir
 	# Run Petal on linear-algebra-2mm
-	fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm.svg --through dahlia-profiler -s sim.data=linear-algebra-2mm.data --dir petal-runs/linear-algebra-2mm
+	fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm.svg --through dahlia-profiler -s sim.data=linear-algebra-2mm.data --dir petal-runs/linear-algebra-2mm -s profiler.compilation-passes="-p pre-opt -p compile -p post-opt -p lower -d group2seq"
 	# copy timeline view for easier viewing (Figure 11c: Zoomed in timeline view with static promotion)
 	cp petal-runs/linear-algebra-2mm/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-11c.pftrace
 	
 	# Run Petal on linear-algebra-2mm without static promotion
-	fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm-disable-static-promotion.svg --through dahlia-profiler -s sim.data=linear-algebra-2mm.data -s profiler.compilation-passes="-p pre-opt -p compile -p post-opt -p lower -d static-promotion" --dir petal-runs/linear-algebra-2mm-disable-static-promotion
+	fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm-disable-static-promotion.svg --through dahlia-profiler -s sim.data=linear-algebra-2mm.data -s profiler.compilation-passes="-p pre-opt -p compile -p post-opt -p lower -d static-promotion -d group2seq" --dir petal-runs/linear-algebra-2mm-disable-static-promotion
 	# copy timeline view for easier viewing (Figure 11a: Zoomed in timeline view without static promotion)
 	cp petal-runs/linear-algebra-2mm-disable-static-promotion/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-11a.pftrace
 	
@@ -169,8 +169,8 @@ echo "Reproducing figures from Section 11: Case Studies: Optimizing ADL programs
 )
 }
 
-reproduce_section_3
-reproduce_section_8
-reproduce_section_9
-# reproduce_section_10
-reproduce_section_11
+# reproduce_section_3
+# reproduce_section_8
+# reproduce_section_9
+reproduce_section_10
+# reproduce_section_11

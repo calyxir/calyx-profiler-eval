@@ -102,15 +102,42 @@ Many timeline view figures were based on a "zoomed-in" view. Here is a guide on 
 - Figure 5: Open the `toplevel.main` dropdown and its `Control Groups` dropdown.
 - Figure 9d: Open the `toplevel.main` dropdown.
 - Figure 9e: Open the `main` dropdown and its `BL0005: for (let k: ubit<4> = 0..2)` dropdown.
-- Figure 11a: 
+- Figure 11a: Open the `toplevel.main` dropdown and navigate to cycle 14160. Figure 11a shows the contents of the `Control Register Updates` track and the `Thread 000` track, with simplified names:
+  - `upd14` corresponds to `read_A_idx`
+  - `let17` corresponds to `read_B_idx`
+  - `let18` corresponds to `mult_A_B`
+  - `upd15` corresponds to `write`
+  - `let19` corresponds to `i_next`
+- Figure 11c: Open the `toplevel.main` dropdown and navigate to cycle 8180. The name mapping is the same as above. Note that the paper simplified the detail where `let18` now takes 4 cycles; this is because the multiplication primitive was given the annotation that it _could_ take 4 cycles..
+- Figure 12a: No navigation required.
+- Figure 12b: No navigation required.
+- Figure 13a:
+- Figure 13b:
+- Figure 17a: No navigation required.
+- Figure 17b: No navigation required.
+- Figure 17c: No navigation required.
+- Figure 18b: Timeline view of inner for loop iteration in the original program
+- Figure 18c: Timeline view of inner for loop iteration in optimized program
 
-# Vivado Results
+
+### Tables
+
+
+
+# Vivado Results (Estimated time: TODO minutes)
+
+### Queues
+    - Vivado:
+      - worst slack
+      - area - LUT decrease
+
+### Abelian Sandpile
 
 # Performance comparison (Estimated time: TODO minutes)
 
-Run the `reproduce-performance.sh` script
+Run the `reproduce-performance.sh` script from the `calyx-profiler-eval` directory. This should be contrasted with the performance numbers given in 
 
-# (optional) Profiling with Petal
+# (optional) Profiling with Petal (Estimated time: TODO minutes)
 
 
 
