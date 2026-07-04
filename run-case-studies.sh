@@ -154,23 +154,25 @@ function reproduce_section_10() {
 
 	# ffnn Verilator runs for unified cycle collection
 	echo -e "\tRunning Verilator on ffnn (original)..."
-	run_cmd "fud2 ffnn-original.futil -o outputs/ffnn-original.json --through verilator -s sim.data=ffnn.data -s calyx.args=\"-d papercut -d cell-share\"" ${sec}-verilator-ffnn-original.txt
+	run_cmd "fud2 ffnn-original.futil -o outputs/ffnn-original.json --through verilator -s sim.data=ffnn.data -s calyx.args=\"-d papercut -d cell-share -d group2seq\"" ${sec}-verilator-ffnn-original.txt
 	echo "ffnn-original,"$( get_cycles outputs/ffnn-original.json ) >> ${CYCLE_COUNTS_RES}
 	
 	echo -e "\tRunning Verilator on ffnn (optimized)..."
-	run_cmd "fud2 ffnn-optimized.futil -o outputs/ffnn-optimized.json --through verilator -s sim.data=ffnn.data -s calyx.args=\"-d papercut -d cell-share\"" ${sec}-verilator-ffnn-original.txt
+	run_cmd "fud2 ffnn-optimized.futil -o outputs/ffnn-optimized.json --through verilator -s sim.data=ffnn.data -s calyx.args=\"-d papercut -d cell-share -d group2seq\"" ${sec}-verilator-ffnn-original.txt
 	echo "ffnn-optimized,"$( get_cycles outputs/ffnn-optimized.json ) >> ${CYCLE_COUNTS_RES}
 
 	# ffnn Petal runs
 	# NOTE: Maybe worth adding an option to disable ffnn runs because this will take a while.
 	echo -e "\tRunning Petal on ffnn (original)..."
-	run_cmd "fud2 ffnn-original.futil -o svgs/ffnn-original.svg --through profiler -s sim.data=ffnn.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share\" --dir petal-runs/ffnn-original" ${sec}-petal-ffnn-original.txt
+	run_cmd "fud2 ffnn-original.futil -o svgs/ffnn-original.svg --through profiler -s sim.data=ffnn.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share -d group2seq\" --dir petal-runs/ffnn-original" ${sec}-petal-ffnn-original.txt
 	# copy timeline view for easier viewing (Figure 13a: Zoomed in timeline view before optimization)
 	cp petal-runs/ffnn-original/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-13a.pftrace
+	# copy group table for easier viewing (Table 1: Snippet of group statistics obtained from ffnn (bb_1-6))
+	cp petal-runs/ffnn-original/profiler-out/group-stats.csv ${RESULTS_DIR}/table-1.csv
 	
 	# Run Petal on optimized ffnn program
 	echo -e "\tRunning Petal on ffnn (optimized)..."
-	run_cmd "fud2 ffnn-optimized.futil -o svgs/ffnn-optimized.svg --through profiler -s sim.data=ffnn.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share\" --dir petal-runs/ffnn-optimized" ${sec}-petal-ffnn-optimized.txt
+	run_cmd "fud2 ffnn-optimized.futil -o svgs/ffnn-optimized.svg --through profiler -s sim.data=ffnn.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share -d group2seq\" --dir petal-runs/ffnn-optimized" ${sec}-petal-ffnn-optimized.txt
 	# copy timeline view for easier viewing (Figure 13b: Zoomed in timeline view after optimization)
 	cp petal-runs/ffnn-optimized/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-13b.pftrace
 
@@ -216,6 +218,8 @@ function reproduce_section_10() {
 
 	echo -e "\tRunning Petal on queues (original)..."
 	run_cmd "fud2 queues-original.futil -o svgs/queues-original.svg --through profiler -s sim.data=queues.data --dir petal-runs/queues-original" ${sec}-petal-queues-original.txt
+	# copy timeline view for easier viewing (Figure 14b: Timeline of groups active during one call of the myqueue cell)
+	cp petal-runs/queues-original/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-14b.pftrace
     )
 }
 
@@ -248,8 +252,8 @@ function reproduce_section_11() {
     )
 }
 
-reproduce_section_3
-reproduce_section_8
-reproduce_section_9
+# reproduce_section_3
+# reproduce_section_8
+# reproduce_section_9
 reproduce_section_10
-reproduce_section_11
+# reproduce_section_11

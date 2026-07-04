@@ -25,7 +25,7 @@ eval $( fud2 env activate )
 2. If you have logged out since the last time you've run it, re-run the Vivado set-up script:
 
 ```
-source ~/
+source ~/ TODO!!!!!!
 ```
 
 3. Navigate to the evaluation directory by typing:
@@ -102,17 +102,21 @@ Many timeline view figures were based on a "zoomed-in" view. Here is a guide on 
 - Figure 5: Open the `toplevel.main` dropdown and its `Control Groups` dropdown.
 - Figure 9d: Open the `toplevel.main` dropdown.
 - Figure 9e: Open the `main` dropdown and its `BL0005: for (let k: ubit<4> = 0..2)` dropdown.
-- Figure 11a: Open the `toplevel.main` dropdown and navigate to cycle 14160. Figure 11a shows the contents of the `Control Register Updates` track and the `Thread 000` track, with simplified names:
+- Figure 11a: Open the `toplevel.main` dropdown and navigate to cycle 14160. Figure 11a shows the contents of the `Control Register Updates` track and the `Thread 000` track between cycles 14160-14173 (inclusive), with simplified names:
   - `upd14` corresponds to `read_A_idx`
   - `let17` corresponds to `read_B_idx`
   - `let18` corresponds to `mult_A_B`
   - `upd15` corresponds to `write`
   - `let19` corresponds to `i_next`
-- Figure 11c: Open the `toplevel.main` dropdown and navigate to cycle 8180. The name mapping is the same as above. Note that the paper simplified the detail where `let18` now takes 4 cycles; this is because the multiplication primitive was given the annotation that it _could_ take 4 cycles..
+- Figure 11c: Open the `toplevel.main` dropdown and navigate to cycle 8180. The view represented in the figure is in cycles 8180-8186 (inclusive). The name mapping is the same as above. Note that the paper simplified the detail where `let18` now takes 4 cycles; this is because the multiplication primitive was given the annotation that it _could_ take 4 cycles..
 - Figure 12a: No navigation required.
 - Figure 12b: No navigation required.
-- Figure 13a: 
-- Figure 13b:
+- Figure 13a: Open the `toplevel.main.forward_instance` dropdown and pin the tracks `Control Register Updates`, `Thread 017`, `Thread 018`, and `Thread 019`. Then, navigate to cycle 1999. The view represented in the figure features cycles 1999-2023 (inclusive).
+  - `bb0_72`-`bb0_79` corresponds to `bb_1`-`bb_6`
+  - `bb0_80`-`bb0_87` corresponds to `bb_7`-`bb_12`
+  - `bb0_88`-`bb0_95` corresponds to `bb_13`-`bb_18`
+- Figure 13b: Open the `toplevel.main.forward_instance` dropdown and pin the tracks `Control Register Updates`, `Thread 017`, `Thread 018`, and `Thread 019`. Then, navigate to cycle 1993. The view represented in the figure features cycles 1993-2009 (inclusive). The simplified names are the same as for Figure 13a.
+- Figure 14b: Open the `toplevel.main.forward_instance` dropdown and pin the tracks `Control Register Updates`, `Thread 017`, `Thread 018`, and `Thread 019`. Then, navigate to cycle TODO.
 - Figure 17a: No navigation required.
 - Figure 17b: No navigation required.
 - Figure 17c: No navigation required.
