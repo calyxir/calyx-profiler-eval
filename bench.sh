@@ -72,10 +72,8 @@ function run_verilator() {
 	
 	# baseline: no instrumentation
 	local fud2_baseline_dir=${bench_dir}/fud2-baseline
-	local fud2_baseline_fst_dir=${bench_dir}/fud2-baseline-fst
 	# inst: instrumentation
 	local fud2_inst_dir=${bench_dir}/fud2-instrumented
-	local fud2_inst_fst_dir=${bench_dir}/fud2-instrumented-fst
 
 	local sim_run_results=${bench_dir}/sim_run_results.csv
 	echo "config,mean,stddev,median,user,system,min,max" > ${sim_run_results}
@@ -84,28 +82,12 @@ function run_verilator() {
 	    extra_args="-d papercut -d cell-share"
 	fi
 	
-	default_args="-d group2seq ${extra_args}"
+	default_args="${extra_args}"
 	profiler_args="-p profiler ${extra_args}"
 	
 	# run verilator --> dat first to get all files necessary
         fud2 ${bench_file} -o ${bench_dir}/baseline-sim-result.json --to dat --through verilator -s calyx.args="${default_args}" -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_baseline_dir} &> ${LOGS_DIR}/gol-build-baseline-${bench_name}
-	fud2 ${bench_file} -o ${bench_dir}/inst-sim-result.json --to dat --through verilator -s calyx.args="${profiler_args}" -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_inst_dir} &> ${LOGS_DIR}/gol-build-inst-${bench_name}
-	# fst is weird
-	(
-	    cp -r ${fud2_baseline_dir} ${fud2_baseline_fst_dir}
-	    cd ${fud2_baseline_fst_dir}
-	    rm sim_1.exe
-	    verilator verilog_1.sv tb.sv --trace-fst --binary --top-module toplevel -fno-inline -Mdir verilator-fst-out
-	    cp verilator-fst-out/Vtoplevel sim_1.exe
-	) &> ${LOGS_DIR}/gol-build-bl-fst-${bench_name}
-	(
-	    cp -r ${fud2_inst_dir} ${fud2_inst_fst_dir}
-	    cd ${fud2_inst_fst_dir}
-	    rm sim_1.exe
-	    verilator verilog_1.sv tb.sv --trace-fst --binary --top-module toplevel -fno-inline -Mdir verilator-fst-out
-	    cp verilator-fst-out/Vtoplevel sim_1.exe
-	) &> ${LOGS_DIR}/gol-build-inst-fst-${bench_name}
-	
+	fud2 ${bench_file} -o ${bench_dir}/inst-sim-result.json --to dat --through verilator -s calyx.args="${profiler_args}" -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_inst_dir} &> ${LOGS_DIR}/gol-build-inst-${bench_name}	
 
 	echo "Running verilator on baseline..."
 	# run verilator on baseline
@@ -120,14 +102,6 @@ function run_verilator() {
 	    ( hyperfine "./sim_1.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=0 +OUT=../sim-result.vcd" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_with_vcd} ) &> ${LOGS_DIR}/gol-sim-baseline-vcd-${bench_name}
 	    echo "bl-with-vcd,"$( tail -n +2 ${hf_with_vcd} | cut -d, -f2- ) >> ${sim_run_results}
 	)
-	# run verilator on baseline with fst
-	(
-	    cd ${fud2_baseline_fst_dir}
-	    hf_with_fst=${bench_dir}/hf-sim-baseline-fst.csv
-	    # with fst
-	    ( hyperfine "./sim_1.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=0 +OUT=../sim-result.fst" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_with_fst} ) &> ${LOGS_DIR}/gol-sim-baseline-fst-${bench_name}
-	    echo "bl-with-fst,"$( tail -n +2 ${hf_with_fst} | cut -d, -f2- ) >> ${sim_run_results}
-	)
 	# run verilator on instrumented
 	echo "Running verilator on instrumented..."
 	(
@@ -141,15 +115,7 @@ function run_verilator() {
 	    # with vcd
 	    ( hyperfine "./sim_1.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=0 +OUT=../sim-result.vcd" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_with_vcd} ) &> ${LOGS_DIR}/gol-sim-inst-vcd-${bench_name}
 	    echo "inst-with-vcd,"$( tail -n +2 ${hf_with_vcd} | cut -d, -f2- ) >> ${sim_run_results}
-	)
-	(
-	    cd ${fud2_inst_fst_dir}
-	    hf_with_fst=${bench_dir}/hf-sim-inst-fst.csv
-	    # with fst
-	    ( hyperfine "./sim_1.exe +DATA=sim_data +CYCLE_LIMIT=500000000 +NOTRACE=0 +OUT=../sim-result.fst" --warmup $WARMUP_COUNT --runs $RUN_COUNT --export-csv ${hf_with_fst} ) &> ${LOGS_DIR}/gol-sim-inst-fst-${bench_name}
-	    echo "inst-with-fst,"$( tail -n +2 ${hf_with_fst} | cut -d, -f2- ) >> ${sim_run_results}
-	)
-	
+	)	
     )
 }
 
@@ -219,20 +185,18 @@ function process_results() {
     # using means for now
     bl_normal=$( grep "bl-wo-vcd" ${sim_run_results} | cut -d, -f2 )
     bl_vcd=$( grep "bl-with-vcd" ${sim_run_results} | cut -d, -f2 )
-    bl_fst=$( grep "bl-with-fst" ${sim_run_results} | cut -d, -f2 )
     it_normal=$( grep "inst-wo-vcd" ${sim_run_results} | cut -d, -f2 )
     it_vcd=$( grep "inst-with-vcd" ${sim_run_results} | cut -d, -f2 )
-    it_fst=$( grep "inst-with-fst" ${sim_run_results} | cut -d, -f2 )
     p_e2e=$( grep "profiler-e2e" ${sim_run_results} | cut -d, -f2 )
     p_script=$( grep "profiler-script" ${sim_run_results} | cut -d, -f2 )
     
-    echo "${bench_name},${probe_count},$bl_normal,$it_normal,$bl_vcd,$it_vcd,$bl_fst,$it_fst,${p_script},${p_e2e}" >> ${results_csv}
+    echo "${bench_name},${probe_count},$bl_normal,$it_normal,$bl_vcd,$it_vcd,${p_script},${p_e2e}" >> ${results_csv}
 }
 
 function main() {
 
     results_csv=${DATA_DIR}/results.csv
-    echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,bl-with-fst,inst-with-fst,profiler-script,profiler-e2e" > ${results_csv}
+    echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,profiler-script,profiler-e2e" > ${results_csv}
     
     for bench_short_file in $( cat ${BENCHMARKS_DIR}/order.txt | grep -v "#"  ); do
 	bench_file=${BENCHMARKS_DIR}/${bench_short_file}
