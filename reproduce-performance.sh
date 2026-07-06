@@ -13,7 +13,7 @@ fi
 SCRIPT_DIR=$( cd $( dirname $0 ) && pwd )
 
 CASE_STUDIES_DIR=${SCRIPT_DIR}/case-studies
-DATA_DIR=${SCRIPT_DIR}/data/generated-data
+DATA_DIR=${SCRIPT_DIR}/performance-data/generated-data
 GEN_CALYX_BENCH_DIR=${DATA_DIR}/futil-files
 LOGS_DIR=${DATA_DIR}/logs
 SCRATCH_DIR=${DATA_DIR}/scratch
