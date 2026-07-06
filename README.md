@@ -144,7 +144,9 @@ Many timeline view figures were based on a "zoomed-in" view. Here is a guide on 
 
 # Performance comparison (Estimated time: TODO minutes)
 
-Run the `reproduce-performance.sh` script from the `calyx-profiler-eval` directory. This should be contrasted with the performance numbers given in Section 7 under the paragraph "_Petal profiling performance_".
+Run the `reproduce-performance.sh` script from the `calyx-profiler-eval` directory. This script runs performance benchmarks on the original versions of the five programs 
+
+The output will be This should be contrasted with the performance numbers given in Section 7 under the paragraph "_Petal profiling performance_".
 
 # (optional) Profiling with Petal (Estimated time: TODO minutes)
 

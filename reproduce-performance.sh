@@ -18,8 +18,8 @@ GEN_CALYX_BENCH_DIR=${DATA_DIR}/futil-files
 LOGS_DIR=${DATA_DIR}/logs
 SCRATCH_DIR=${DATA_DIR}/scratch
 
-WARMUP_COUNT=1 # set to 5 after testing.
-RUN_COUNT=2 # set to 30 after testing.
+WARMUP_COUNT=5 # set to 5 after testing.
+RUN_COUNT=30 # set to 30 after testing.
 
 
 # create new data directory
@@ -56,7 +56,7 @@ function generate_calyx_file() {
     if [[ "${bench_file}" == *".futil" ]]; then
 	cp ${bench_file} ${GEN_CALYX_BENCH_DIR}
 	return
-    elif [[ "${bench_file}" == *"strict_6flow_test.py" ]]; then
+    elif [[ "${bench_file}" == *"queues-original.py" ]]; then
 	extra_opt="-s py.args=\"20000 --keepgoing\""
     fi
 
@@ -84,7 +84,7 @@ function run_verilator() {
 	local sim_run_results=${bench_dir}/sim_run_results.csv
 	echo "config,mean,stddev,median,user,system,min,max" > ${sim_run_results}
 	
-	if [[ "${bench_name}" == ffnn-par ]]; then
+	if [[ "${bench_name}" == ffnn ]]; then
 	    extra_args="-d papercut -d cell-share"
 	fi
 	
@@ -144,9 +144,9 @@ function run_profiler() {
 	profscript_extra_args=""
     fi
 
-    if [[ "${bench_name}" == "strict_6flow_test" ]]; then
+    if [[ "${bench_name}" == "queues-original" ]]; then
 	extra_args="-s profiler.py-args=\"20000 --keepgoing\""
-    elif [[ "${bench_name}" == ffnn-par ]]; then
+    elif [[ "${bench_name}" == ffnn ]]; then
 	extra_args="-s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share\""
     fi
 
