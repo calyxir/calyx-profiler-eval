@@ -252,8 +252,8 @@ function reproduce_section_11() {
     )
 }
 
-# reproduce_section_3
-# reproduce_section_8
-# reproduce_section_9
+reproduce_section_3
+reproduce_section_8
+reproduce_section_9
 reproduce_section_10
-# reproduce_section_11
+reproduce_section_11

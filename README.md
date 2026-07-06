@@ -50,6 +50,8 @@ fud2 tests/correctness/pipelined-mac.futil -o svgs/pipelined-mac.svg --through p
 
 ![Pipelined Mac Flame graph](figures/pipelined-mac-flat.png "pipelined-mac flattened flame graph")
 
+A scaled flame graph should also be created in `petal-runs/pipelined-mac/profiler-out`
+
 (3) View the timeline view
 
 ### Vivado kick-the-tires
