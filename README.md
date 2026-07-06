@@ -43,13 +43,12 @@ cd ~/calyx-profiler-eval
 ```
 cd ~/calyx
 mkdir svgs petal-runs
-fud2 tests/correctness/pipelined-mac.futil -s svgs/pipelined-mac.svg --through profiler -s sim.data=tests/correctness/pipelined-mac.futil.data --dir petal-runs/pipelined-mac
+fud2 tests/correctness/pipelined-mac.futil -o svgs/pipelined-mac.svg --through profiler -s sim.data=tests/correctness/pipelined-mac.futil.data --dir petal-runs/pipelined-mac
 ```
 
-(2) View the flame graph(s). A flattened flame graph should be created in `svgs/pipelined-mac.svg`. It should look like the below screenshot:
+(2) View the flame graph(s). A flattened flame graph should be created in `svgs/pipelined-mac.svg`. It should look like the below:
 
-**TODO:INSERT IMAGE**
-
+![Pipelined Mac Flame graph](figures/pipelined-mac-flat.png "pipelined-mac flattened flame graph")
 
 (3) View the timeline view
 
@@ -127,8 +126,8 @@ Many timeline view figures were based on a "zoomed-in" view. Here is a guide on 
 
 ### Tables
 
-- Table 
-
+- Table 1: Open `table1.csv` and check the rows that indicate `bb0_72`-`bb0_79`. 
+- Table 2: `table2.csv` should be the same as Table 2 in the paper.
 
 # Vivado Results (Estimated time: TODO minutes)
 
@@ -138,10 +137,12 @@ Many timeline view figures were based on a "zoomed-in" view. Here is a guide on 
       - area - LUT decrease
 
 ### Abelian Sandpile
+      - worst slack
+      - area - LUT increase
 
 # Performance comparison (Estimated time: TODO minutes)
 
-Run the `reproduce-performance.sh` script from the `calyx-profiler-eval` directory. This should be contrasted with the performance numbers given in 
+Run the `reproduce-performance.sh` script from the `calyx-profiler-eval` directory. This should be contrasted with the performance numbers given in Section 7 under the paragraph "_Petal profiling performance_".
 
 # (optional) Profiling with Petal (Estimated time: TODO minutes)
 
