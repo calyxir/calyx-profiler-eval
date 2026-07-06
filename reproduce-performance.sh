@@ -12,14 +12,14 @@ fi
 
 SCRIPT_DIR=$( cd $( dirname $0 ) && pwd )
 
-BENCHMARKS_DIR=${SCRIPT_DIR}/benchmarks
+CASE_STUDIES_DIR=${SCRIPT_DIR}/case-studies
 DATA_DIR=${SCRIPT_DIR}/data/generated-data
 GEN_CALYX_BENCH_DIR=${DATA_DIR}/futil-files
 LOGS_DIR=${DATA_DIR}/logs
 SCRATCH_DIR=${DATA_DIR}/scratch
 
-WARMUP_COUNT=5 # copied from sundew eval
-RUN_COUNT=10 # 30 in sundew eval
+WARMUP_COUNT=1 # set to 5 after testing.
+RUN_COUNT=2 # set to 30 after testing.
 
 
 # create new data directory
@@ -31,6 +31,11 @@ fi
 mkdir -p ${DATA_DIR}
 mkdir -p ${LOGS_DIR}
 mkdir -p ${GEN_CALYX_BENCH_DIR}
+
+# rounding scheme
+function round() {
+    echo $(printf %.$2f $(echo "scale=$2;(((10^$2)*$1)+0.5)/(10^$2)" | bc))
+};
 
 function produce_probe_nums() {
     (
@@ -68,7 +73,8 @@ function run_verilator() {
     (
 	local bench_file=$1
 	local bench_name=$2
-	local bench_dir=$3
+	local bench_data=$3
+	local bench_dir=$4
 	
 	# baseline: no instrumentation
 	local fud2_baseline_dir=${bench_dir}/fud2-baseline
@@ -86,8 +92,8 @@ function run_verilator() {
 	profiler_args="-p profiler ${extra_args}"
 	
 	# run verilator --> dat first to get all files necessary
-        fud2 ${bench_file} -o ${bench_dir}/baseline-sim-result.json --to dat --through verilator -s calyx.args="${default_args}" -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_baseline_dir} &> ${LOGS_DIR}/gol-build-baseline-${bench_name}
-	fud2 ${bench_file} -o ${bench_dir}/inst-sim-result.json --to dat --through verilator -s calyx.args="${profiler_args}" -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data --dir ${fud2_inst_dir} &> ${LOGS_DIR}/gol-build-inst-${bench_name}	
+        fud2 ${bench_file} -o ${bench_dir}/baseline-sim-result.json --to dat --through verilator -s calyx.args="${default_args}" -s sim.data=${bench_data} --dir ${fud2_baseline_dir} &> ${LOGS_DIR}/gol-build-baseline-${bench_name}
+	fud2 ${bench_file} -o ${bench_dir}/inst-sim-result.json --to dat --through verilator -s calyx.args="${profiler_args}" -s sim.data=${bench_data} --dir ${fud2_inst_dir} &> ${LOGS_DIR}/gol-build-inst-${bench_name}	
 
 	echo "Running verilator on baseline..."
 	# run verilator on baseline
@@ -122,7 +128,8 @@ function run_verilator() {
 function run_profiler() {
     local bench_file=$1
     local bench_name=$2
-    local bench_dir=$3
+    local bench_data=$3
+    local bench_dir=$4
 
     local sim_run_results=${bench_dir}/sim_run_results.csv
     
@@ -136,7 +143,6 @@ function run_profiler() {
 	profiler_type="profiler"
 	profscript_extra_args=""
     fi
-    echo "Profiler type: ${profiler_type}"
 
     if [[ "${bench_name}" == "strict_6flow_test" ]]; then
 	extra_args="-s profiler.py-args=\"20000 --keepgoing\""
@@ -148,7 +154,7 @@ function run_profiler() {
     hf_file=${bench_dir}/hf-profiler-e2e.csv
     svg_file=${bench_dir}/f.svg
 	
-    command="fud2 ${bench_file} -o ${svg_file} --through ${profiler_type} -s sim.data=${BENCHMARKS_DIR}/${bench_name}.data ${extra_args}"
+    command="fud2 ${bench_file} -o ${svg_file} --through ${profiler_type} -s sim.data=${bench_data} ${extra_args}"
     prep_command="rm -f ${svg_file}}"
     echo "Running e2e profiler runs..."
 
@@ -189,18 +195,28 @@ function process_results() {
     it_vcd=$( grep "inst-with-vcd" ${sim_run_results} | cut -d, -f2 )
     p_e2e=$( grep "profiler-e2e" ${sim_run_results} | cut -d, -f2 )
     p_script=$( grep "profiler-script" ${sim_run_results} | cut -d, -f2 )
+
+    # oh-vcd,oh-inst,oh-reconstruction
+    # VCD vs non-VCD
+    oh_vcd=$( round $( echo "${bl_vcd} / ${bl_normal}" | bc -l ) 2 )
+    # VCD of inst vs VCD of og program
+    oh_inst=$( round $( echo "${it_vcd} / ${it_normal}" | bc -l ) 2 )
+    # trace reconstruction time vs non-VCD baseline
+    oh_trace=$( round $( echo "${p_script} / ${bl_normal}" | bc -l ) 2 )
     
-    echo "${bench_name},${probe_count},$bl_normal,$it_normal,$bl_vcd,$it_vcd,${p_script},${p_e2e}" >> ${results_csv}
+    
+    echo "${bench_name},${probe_count},$bl_normal,$it_normal,$bl_vcd,$it_vcd,${p_script},${p_e2e},${oh_vcd},${oh_inst},${oh_trace}" >> ${results_csv}
 }
 
 function main() {
 
     results_csv=${DATA_DIR}/results.csv
-    echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,profiler-script,profiler-e2e" > ${results_csv}
+    echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,trace-reconstruction,profiler-e2e,oh-vcd,oh-inst,oh-reconstruction" > ${results_csv}
     
-    for bench_short_file in $( cat ${BENCHMARKS_DIR}/order.txt | grep -v "#"  ); do
-	bench_file=${BENCHMARKS_DIR}/${bench_short_file}
-	bench_name=$( basename "${bench_file}" | cut -d. -f1 )
+    for bench_info in $( cat ${CASE_STUDIES_DIR}/performance-benchmark-order.txt | grep -v "#"  ); do
+	bench_file=${CASE_STUDIES_DIR}/$( echo "${bench_info}" | cut -d';' -f1 )
+	bench_data=${CASE_STUDIES_DIR}/$( echo "${bench_info}" | cut -d';' -f2 )
+	bench_name=$( basename "${bench_file}" | cut -d'.' -f1 )
 	echo =============${bench_name}
 	bench_dir=${DATA_DIR}/${bench_name}
 	mkdir ${bench_dir}	
@@ -209,8 +225,8 @@ function main() {
 	calyx_file=${GEN_CALYX_BENCH_DIR}/${bench_name}.futil
 
 	produce_probe_nums ${calyx_file} ${bench_dir} ${bench_name}
-	run_verilator ${calyx_file} ${bench_name} ${bench_dir}
-	run_profiler ${bench_file} ${bench_name} ${bench_dir}
+	run_verilator ${calyx_file} ${bench_name} ${bench_data} ${bench_dir}
+	run_profiler ${bench_file} ${bench_name} ${bench_data} ${bench_dir}
 	process_results ${bench_name} ${bench_dir} ${results_csv}
 
     done

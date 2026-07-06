@@ -1,0 +1,5 @@
+sec-09/linear-algebra-2mm.fuse;sec-09/linear-algebra-2mm.data
+# sec-09/linear-algebra-3mm.fuse;sec-09/linear-algebra-3mm.data
+# sec-11/sandpile-original.fuse;sec-11/sandpile.data
+# sec-10/queues-original.py;sec-10/queues.data
+#sec-10/ffnn-original.futil;sec-10/ffnn.data
