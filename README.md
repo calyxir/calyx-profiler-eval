@@ -13,7 +13,17 @@ The evaluation consists of reproduction of figures and performance claims made i
 
 The artifact is available in a Virtual Machine packaged as an OVA file, of which a permanent link is available [here](). We assume that you are using [VirtualBox](https://www.virtualbox.org/). We also include instructions for building the virtual machine using Vagrant in the `vm` directory.
 
-*Setup instructions once you are in the VM*: This should be run at the beginning of every terminal session.
+**NOTE:** An internet connection is necessary for Vivado installation and for opening Perfetto UI to view timeline views.
+
+### Setting up Vivado
+
+
+
+Might be necessary to follow the advice here: https://adaptivesupport.amd.com/s/article/76585?language=en_US
+
+### Setup instructions once you are in the VM
+
+This should be run at the beginning of every terminal session.
 
 0. The username is `vagrant`, and the password is `vagrant`.
 
@@ -25,19 +35,29 @@ eval $( fud2 env activate )
 2. If you have logged out since the last time you've run it, re-run the Vivado set-up script:
 
 ```
-source ~/ TODO!!!!!!
+source /home/vagrant/Xilinx/Vitis_HLS/2022.2/settings64.sh
+```
+
+Double check that you can now run Vivado by running `vivado -version`. The output should be:
+
+```
+vagrant@vagrant:~$ source /home/vagrant/Xilinx/Vitis_HLS/2022.2/settings64.sh
+vagrant@vagrant:~$ vivado -version
+Vivado v2022.2 (64-bit)
+SW Build 3671981 on Fri Oct 14 04:59:54 MDT 2022
+IP Build 3669848 on Fri Oct 14 08:30:02 MDT 2022
+Tool Version Limit: 2022.10
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 ```
 
 3. Navigate to the evaluation directory by typing:
 ```
-cd ~/calyx-profiler-eval
+cd ~/Desktop/calyx-profiler-eval
 ```
-
-*Note that an internet connection is necessary for Vivado installation and for opening Perfetto UI to view timeline views*
 
 # Kick the tires
 
-We list instructions for testing basic functionality of Petal and Vivado 
+We list instructions for testing basic functionality of Petal and Vivado during the Kick the Tires Phase.
 
 ### Petal's basic functionality (< 5 min)
 
@@ -64,22 +84,64 @@ A scaled flame graph should also be created in `petal-runs/pipelined-mac/profile
 
 Both `toplevel.main` and `toplevel.main.mac` are dropdowns, and clicking on them will reveal activity of groups/control within the component. Check that you can navigate the Perfetto view (Press `W` for zooming in, `A` for navigating left, `D` for navigating right, and `S` for zooming out).
 
-### Vivado kick-the-tires
+### Vivado kick-the-tires (<5 min)
 
-We will run some commands to ensure that Vivado is properly set up.
+We will run commands to ensure that Vivado is properly set up.
 
-(1) Obtaining an area report.
+(1) Obtain a JSON summary of Vivado's resource usage report.
 
 ```
 cd ~/calyx
-fud2 tests/correctness/pipelined-mac.futil --to area-report -o pipelined-mac-area.rpt --dir vivado-runs/pipelined-mac-area
+fud2 tests/correctness/pipelined-mac.futil --to json-report --through synth-verilog-to-util-json -o pipelined-mac-synth.json --dir vivado-runs/pipelined-mac
 ```
 
-This should produce a file 
+This will generate a `pipelined-mac-synth.json` file containing a summary of synthesis and post-place-and-route results.
+```
+vagrant@vagrant:~/calyx$ head pipelined-mac-synth.json
+{
+  "synth": {
+    "summary": {
+      "lut": 119,
+      "dsp": 3,
+      "brams": 0.0,
+      "registers": 164,
+      "carry8": 6,
+      "f7_muxes": 0,
+      "f8_muxes": 0,
+```
 
-(2) Obtaining the worst slack.
+The original reports that was parsed to generate the JSON file is located:
+- Post-place-and-route resource usage reports: `vivado-runs/pipelined-mac/out/FutilBuild.runs/impl_1/main_utilization_placed.rpt`
+- Post-place-and-route timing reports: `vivado-runs/pipelined-mac/out/FutilBuild.runs/impl_1/main_timing_summary_routed.rpt`
+- Synthesis resource usage reports: `vivado-runs/pipelined-mac-synth/out/FutilBuild.runs/synth_1/main_utilization_synth.rpt`.
 
-TODO!!!!
+This evaluation is focused on the post-place-and-route results rather than the synthesis results.
+
+(2) Confirm the post-place-and-route resource usage numbers:
+```
+(venv) vagrant@vagrant:~/calyx$ jq '.impl.summary' pipelined-mac-synth.json
+{
+  "lut": 119,
+  "dsp": 3,
+  "brams": 0.0,
+  "registers": 164,
+  "carry8": 6,
+  "f7_muxes": 0,
+  "f8_muxes": 0,
+  "f9_muxes": 0
+}
+```
+
+(3) Confirm that this program meets the "default" clock period of 7.0, and therefore meets a frequency of 143MHz. Here, the `meet_timing` field will be 1 to indicate that the program met the requested clock period, which is indicated in the `period` field (and its frequency is reflected in the `frequency` field).
+
+```
+(venv) vagrant@vagrant:~/calyx$ tail -5 pipelined-mac-synth.json
+  "meet_timing": 1,
+  "worst_slack": 4.221,
+  "period": 7.0,
+  "frequency": 142.857
+}
+```
 
 # Step-by-step guide
 
@@ -150,78 +212,85 @@ Many timeline view figures were based on a "zoomed-in" view. Here is a guide on 
   - Note: You may observe that there are iterations of the inner for loop that contain an empty gap where no line is active. This empty gap occurs when the guard in the preceding `if` is `false`. Calyx's `static-promotion` compiler pass allocates four cycles for each `if` and its corresponding body, but since the guard did not pass there was no activity on that specific cycle.
 - Figure 18c: Open the `main` dropdown, the `BL0028: while(spills != 0)` dropdown, the `BL0030: for(let y: ubit<32> = 1..9)` dropdown, and the `BL0031: for(let x: ubit<32> = 1..9)` dropdown. Then, navigate to cycle 993. The iteration represented in the figure is in cycles 993-1008 (inclusive).
 
-
 ### Tables
 
 - Table 1: Open `table1.csv` and check the rows that indicate `bb0_72`-`bb0_79`. 
 - Table 2: `table2.csv` should be the same as Table 2 in the paper.
 
-# Vivado Results (Estimated time: TODO minutes)
+# Vivado Results (Estimated time: ~ minutes)
 
-### Queues
-    - Vivado:
-      - worst slack
-      - area - LUT decrease
+To reproduce post-place-and-route results, we will run synthesis and implementation on Vivado for the original and (final) optimized versions of the program.
 
-### Abelian Sandpile
-      - worst slack
-      - area - LUT increase
+**NOTE:** There will be slight differences between the numbers generated through this evaluation and those in the paper. This is because the evaluation uses Vivado 2022.2, whereas the paper used Vivado 2020.2. None of these discrepancies should largely affect the claims that we make in the paper.
+
+### Queues (Section 10.2; Estimated time: ~10 min)
+
+(1) Generate a JSON Vivado summary of the original program:
+
+```
+cd ~/Desktop/calyx-profiler-eval
+fud2 case-studies/sec-10/queues-original.futil --to json-report --through synth-verilog-to-util-json -o synth-results/queues-original-synth.json --dir vivado-runs/queues-original
+```
+
+(2) Generate a JSON Vivado summary of the optimized program:
+
+```
+cd ~/Desktop/calyx-profiler-eval
+fud2 case-studies/sec-10/queues-full-opt.futil --to json-report --through synth-verilog-to-util-json -o synth-results/queues-full-opt-synth.json --dir vivado-runs/queues-full-opt-synth
+```
+
+(3) Check that post-place-and-route ("impl"), the number of LUTs of the optimized program is _lower_ than the number of LUTs in the original program.
+
+```
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.impl.summary.lut' synth-results/queues-original-synth.json
+1223
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.impl.summary.lut' synth-results/queues-full-opt-synth.json
+883
+```
+
+(4) Check that both programs meet the clock period of 7.0, and therefore can meet a frequency of 143 MHz.
+
+```
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ tail -5 synth-results/queues-original-synth.json
+  "meet_timing": 1,
+  "worst_slack": 2.755,
+  "period": 7.0,
+  "frequency": 142.857
+}
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ tail -5 synth-results/queues-full-opt-synth.json
+  "meet_timing": 1,
+  "worst_slack": 2.339,
+  "period": 7.0,
+  "frequency": 142.857
+}
+```
+
+### Sandpile (Section 11; Estimated time: )
+
+For the Sandpile program, we will 
 
 # Performance comparison (Estimated time: TODO minutes)
 
-Run the `reproduce-performance.sh` script from the `calyx-profiler-eval` directory. This script runs performance benchmarks on the original versions of the five programs 
+Run the `reproduce-performance.sh` script from the `calyx-profiler-eval` directory. This script runs performance benchmarks on the original versions of the five programs used in the case studies. The script takes an argument which is the path to the Calyx directory.
 
-The output will be This should be contrasted with the performance numbers given in Section 7 under the paragraph "_Petal profiling performance_".
+```
+bash reproduce-performance.sh ~/calyx
+```
+
+The script will generate a `performance-data/generated-data` directory, and a CSV with the results will be under `performance-data/generated-data/results.csv`. This should be contrasted with the performance numbers given in Section 7 under the paragraph "_Petal profiling performance_".
+
+We explain each column of the CSV below. All times are in seconds.
+- `probe-count`: Number of profiling probes inserted into the program.
+- `bl-wo-vcd`: Time to run simulation without tracing on the original program.
+- `inst-wo-vcd`: Time to run simulation without tracing on the instrumented program.
+- `bl-with-vcd`: Time to run simulation with tracing on the original program.
+- `inst-with-vcd`: Time to run simulation with tracing on the instrumented program.
+- `trace-reconstruction`: Time to run trace reconstruction.
+- `profiler-e2e`: End-to-end time to run profiling.
+- `oh-vcd`: Overhead of simulation with tracing (`bl-with-vcd / bl-wo-vcd`)
+- `oh-inst`: Overhead of instrumentation when tracing (`inst-with-vcd / bl-with-vcd`)
+- `oh-reconstruction`: Overhead of trace reconstruction with respect to non-tracing simulation of the original program (`trace-reconstruction / bl-wo-vcd`)
 
 # (optional) Profiling with Petal (Estimated time: TODO minutes)
 
-
-
-## Outline: Figures and numbers to reproduce
-
-- Section 3
-  - Original vs new cycle counts
-  - Figure 4: switch-case example flame graph
-  - Figure 5: switch-case example timeline view
-- Section 7
-  - Petal profiling performance
-    - # of probes
-    - Time to obtain RTL trace with instrumentation probes
-    - Trace reconstruction time
-- Section 8
-  - Figure 9d: Calyx timeline view for example Dahlia program
-  - Figure 9e: Dahlia timeline view for example Dahlia program
-- Section 9
-  - Section 9.1: static promotion with linear-algebra-2mm
-    - Figure 11a: Zoomed in timeline view without static promotion
-    - Figure 11c: Zoomed in timeline view with static promotion
-  - Section 9.2: resource sharing with linear-algebra-3mm
-    - Figure 12a: Full timeline view for linear-algebra-3mm with resource sharing
-    - Figure 12b: Full timeline view for linear-algebra-3mm without resource sharing
-- Section 10
-  - Section 10.1: ffnn
-    - Original cycle count
-    - Optimized cycle count
-    - Figure 13a: Zoomed in timeline view before optimization
-    - Figure 13b: Zoomed in timeline view after optimization
-    - Table 1: Snippet of group statistics obtained from ffnn (bb_1-6)
-  - Section 10.2: Packet scheduling
-    - Original cycle count
-    - Figure 14a: Flame graph of original program
-    - Figure 14b: Zoomed in timeline view of original program
-    - Figure 17a: Timeline view of example while program
-    - Figure 17b: Timeline view of manually transformed while program
-    - Figure 17c: Timeline view of par optimized while program
-    - Table 2: optimization strategies and number of cycle reductions they made on packet scheduling queues
-    - Vivado:
-      - worst slack
-      - area - LUT decrease
-- Section 11: Dahlia Sandpile example
-    - Original cycle count
-    - Optimized program cycle count
-    - Figure 18a: Flame graph of original sandpile program
-    - Figure 18b: Timeline view of inner for loop iteration in the original program
-    - Figure 18c: Timeline view of inner for loop iteration in optimized program
-    - Vivado (for both programs)
-      - worst slack
-      - area - LUT increase
+TODO
