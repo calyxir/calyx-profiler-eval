@@ -306,89 +306,97 @@ fud2 case-studies/sec-10/queues-full-opt.futil --to json-report --through synth-
 }
 ```
 
-### Sandpile (Section 11; Estimated time: )
+### Sandpile (Section 11; Estimated time: 20 min)
 
 In the paper, we make the claim:
 > As one may expect from the nature of this optimization, we found that the area increased: the total number of LUTs went from 780 to 982. We also found that while the maximum frequency decreased from 257.7MHz to 217.5MHz, the end-to-end latency improved from 176,679 nanoseconds to 154,370 nanoseconds. We conclude that our final design trades better end-to-end latency for a slightly worse area.
 
-1. Identify the maximum frequency and end-to-end latency of the original program.
+1. Identify the maximum frequency and end-to-end latency of the original program. (~10 minutes)
 
-First, we will _attempt_ to meet a clock period of 3.87. The `xdc-files` directory contains configuration files for target clock frequencies.
+First, we will _attempt_ to meet a clock period of 3.88. The `xdc-files` directory contains configuration files for target clock frequencies.
 
 ```
 cd ~/Desktop/calyx-profiler-eval
-fud2 case-studies/sec-11/sandpile-original.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-original-3-87.json --dir vivado-runs/sandpile-original-3-87 -s synth-verilog.constraints=xdc-files/3-87.xdc
+fud2 case-studies/sec-11/sandpile-original.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-original-3-88.json --dir vivado-runs/sandpile-original-3-88 -s synth-verilog.constraints=`pwd`/xdc-files/3-88.xdc
 ```
 
-Then, we will find that place-and-route cannot meet that frequency by checking the `meet_timing` field:
+Then, we will find that place-and-route cannot meet that frequency by checking the `meet_timing` field (the output could also be 0):
 ```
-(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-original-3-87.json
-0
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-original-3-88.json
+null
 ```
 
-Next, we will attempt to meet a clock period of 3.88.
+Next, we will attempt to meet a clock period of 3.89.
 
 ```
-fud2 case-studies/sec-11/sandpile-original.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-original-3-88.json --dir vivado-runs/sandpile-original-3-88 -s synth-verilog.constraints=xdc-files/3-88.xdc
+fud2 case-studies/sec-11/sandpile-original.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-original-3-89.json --dir vivado-runs/sandpile-original-3-89 -s synth-verilog.constraints=`pwd`/xdc-files/3-89.xdc
 ```
 
 Then, we will find that place-and-route can meet that frequency:
 ```
-(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-original-3-88.json
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-original-3-89.json
 0
 ```
 
-We can double check that the frequency of this clock period is 257.7MHz, and that the end-to-end latency is 176,679:
+We can double check that the frequency of this clock period is 257.0MHz, and that the end-to-end latency is 176,679 ns:
 ```
-(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.frequency' synth-results/sandpile-original-3-88.json
-
-// TODO: calculation
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.frequency' synth-results/sandpile-original-3-89.json
+257.069
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ echo "3.89 * 45536" | bc -l
+177135.04
 ```
 
-2. Identify the maximum frequency and end-to-end latency of the optimized program.
+2. Identify the maximum frequency and end-to-end latency of the optimized program. (~10 minutes)
 
 First, we will _attempt_ to meet a clock period of 4.58. The `xdc-files` directory contains configuration files for target clock frequencies.
 
 ```
 cd ~/Desktop/calyx-profiler-eval
-fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-optimized-4-58.json --dir vivado-runs/sandpile-optimized-4-58 -s synth-verilog.constraints=xdc-files/4-58.xdc
+fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-optimized-4-58.json --dir vivado-runs/sandpile-optimized-4-58 -s synth-verilog.constraints=`pwd`/xdc-files/4-58.xdc
 ```
 
-Then, we will find that place-and-route cannot meet that frequency by checking the `meet_timing` field:
+Then, we will find that place-and-route cannot meet that frequency by checking the `meet_timing` field  (the output could also be 0):
 ```
 (venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-optimized-4-58.json
-0
+null
 ```
 
 Next, we will attempt to meet a clock period of 4.59.
 
 ```
-fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-optimized-4-59.json --dir vivado-runs/sandpile-optimized-4-59 -s synth-verilog.constraints=xdc-files/4-59.xdc
+fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-optimized-4-59.json --dir vivado-runs/sandpile-optimized-4-59 -s synth-verilog.constraints=`pwd`/xdc-files/4-59.xdc
 ```
 
 Then, we will find that place-and-route can meet that frequency:
 ```
 (venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-optimized-4-59.json
-0
+1
 ```
 
 We can double check that the frequency of this clock period is MHz:
 ```
 (venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.frequency' synth-results/sandpile-optimized-4-59.json
+
 ```
 
 
-3. Compare the resource usage numbers
+3. Compare the resource usage numbers (<1 min)
 
 Now, we can compare the number of LUTs from the reports with the maximum frequency for both programs:
 ```
-(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.impl.summary.lut' synth-results/sandpile-original-3-88.json
-TODO
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.impl.summary.lut' synth-results/sandpile-original-3-89.json
+779
 (venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.impl.summary.lut' synth-results/sandpile-optimized-4-59.json
 TODO
 ```
 
 # Performance comparison (Estimated time: TODO minutes)
+
+Here, we will reproduce claims about the performance of Petal given in Section 7 under the paragraph "_Petal profiling performance_":
+> Most programs had 204–306 profiling probes inserted, except the forward feeding neural network (FFNN) program described in Section 10.1 which had 3026 probes.
+> RTL tracing during simulation adds slightly less than a 2× overhead (compared to running a non-RTL tracing simulation) in all five programs.
+> Compared to RTL tracing the original program, RTL tracing the instrumented program adds a <10% overhead for all five programs. For all non-FFNN programs, simulating the instrumented program with RTL tracing took less than 5 seconds, and the FFNN program took slightly less than 3 minutes.
+> For four out of five programs (excluding the packet scheduling queues program in Section 10.2), trace reconstruction took one order of magnitude more time than non-tracing simulation of the original program. For the remaining program, trace reconstruction took two orders of magnitude longer. However, trace reconstruction took less than 8 minutes in all cases.
 
 Run the `reproduce-performance.sh` script from the `calyx-profiler-eval` directory. This script runs performance benchmarks on the original versions of the five programs used in the case studies. The script takes an argument which is the path to the Calyx directory.
 
@@ -412,4 +420,14 @@ We explain each column of the CSV below. All times are in seconds.
 
 # Reusability Guidelines
 
-In order to 
+Our compiler driver tool fud2 orchestrates commands necessary to compile to/from Calyx, run simulation, Petal, synthesis, and more. The bulk of all scripts in this artifact are runs of fud2 commands. Documentation on fud2 is here: https://docs.calyxir.org/running-calyx/fud2/index.html. 
+
+External documentation on running Petal via fud2 is also available: https://docs.calyxir.org/running-calyx/profiler.html . In general, one can run Petal using fud2 with the following command structure:
+```
+fud2 <CALYX_FILE> -o <FLAT_FLAME_NAME>.svg --through profiler -s sim.data=<DATA_FILE> --dir <OUT_DIR>
+```
+where
+- `CALYX_FILE` is the input Calyx file
+- `FLAT_FLAME_NAME` is the name of the output flattened flame graph. It is important that this file ends with the extension `.svg`.
+- `DATA_FILE` supplies the memory data to the Calyx file
+- `OUT_DIR/profiler-out` will be the location where fud2 will write intermediate and additional outputs. In particular, `OUT_DIR/profiler-out/scaled-flame.svg` will contain the scaled flame graph, and `OUT_DIR/profiler-out/timeline_trace.pftrace` will contain an input protobuf file for Perfetto to load the timeline view.
