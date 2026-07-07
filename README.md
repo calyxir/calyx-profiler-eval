@@ -40,10 +40,10 @@ Our evaluation uses Xilinx's Vivado to generate area and timing estimates. Unfor
       - "Devices" > "Production Devices" > "SoCs" > "Zynq-7000 (limited support)"
       - "Devices" > "Production Devices" > "SoCs" > "Zynq UltraScale+ RFSoC (limited support)" (This should be greyed out)
       - "Devices" > "Production Devices" > "7 Series (limited support)" (Unchecking this will uncheck everything within it, which is what we want)
-      - "Devices" > "Production Devices" > "UltraScale (limited support)" (Unchecking this will uncheck everything within it, which is what we want)
-      - "Devices" > "Production Devices" > "UltraScale+ (limited support)" (Unchecking this will uncheck everything within it, which is what we want)
+      - "Devices" > "Production Devices" > "UltraScale (limited support)" (Unchecking this will uncheck everything within it)
+      - "Devices" > "Production Devices" > "UltraScale+ (limited support)" (Unchecking this will uncheck everything within it)
 8. Agree to the licenses, and click Next.
-9. **Change the install directory location to `/home/vagrant/Xilinx`. After clicking Next, you should be asked whether you want to create this directory; click "yes".
+9. **Change the install directory location to `/home/vagrant/Xilinx`**. After clicking Next, you should be asked whether you want to create this directory; click "yes".
 10. Click "Install". Installation took us 1.5 hours, but it can take anywhere from 2-4 hours. The machine may periodically go into sleep, so it's important to watch over it.
 
 <details>
