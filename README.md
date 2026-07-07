@@ -320,10 +320,10 @@ cd ~/Desktop/calyx-profiler-eval
 fud2 case-studies/sec-11/sandpile-original.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-original-3-88.json --dir vivado-runs/sandpile-original-3-88 -s synth-verilog.constraints=`pwd`/xdc-files/3-88.xdc
 ```
 
-Then, we will find that place-and-route cannot meet that frequency by checking the `meet_timing` field (the output could also be 0):
+Then, we will find that place-and-route cannot meet that frequency by checking the `meet_timing` field (the output could also be null):
 ```
 (venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-original-3-88.json
-null
+0
 ```
 
 Next, we will attempt to meet a clock period of 3.89.
@@ -335,10 +335,10 @@ fud2 case-studies/sec-11/sandpile-original.fuse --to json-report --through synth
 Then, we will find that place-and-route can meet that frequency:
 ```
 (venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-original-3-89.json
-0
+1
 ```
 
-We can double check that the frequency of this clock period is 257.0MHz, and that the end-to-end latency is 176,679 ns:
+We can double check the frequency of this clock period, and calculate the end-to-end latency:
 ```
 (venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.frequency' synth-results/sandpile-original-3-89.json
 257.069
@@ -348,35 +348,37 @@ We can double check that the frequency of this clock period is 257.0MHz, and tha
 
 2. Identify the maximum frequency and end-to-end latency of the optimized program. (~10 minutes)
 
-First, we will _attempt_ to meet a clock period of 4.58. The `xdc-files` directory contains configuration files for target clock frequencies.
+First, we will _attempt_ to meet a clock period of 4.63. The `xdc-files` directory contains configuration files for target clock frequencies.
 
 ```
 cd ~/Desktop/calyx-profiler-eval
-fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-optimized-4-58.json --dir vivado-runs/sandpile-optimized-4-58 -s synth-verilog.constraints=`pwd`/xdc-files/4-58.xdc
+fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-optimized-4-63.json --dir vivado-runs/sandpile-optimized-4-63 -s synth-verilog.constraints=`pwd`/xdc-files/4-63.xdc
 ```
 
-Then, we will find that place-and-route cannot meet that frequency by checking the `meet_timing` field  (the output could also be 0):
+Then, we will find that place-and-route cannot meet that frequency by checking the `meet_timing` field  (the output could also be null):
 ```
-(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-optimized-4-58.json
-null
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-optimized-4-63.json
+0
 ```
 
-Next, we will attempt to meet a clock period of 4.59.
+Next, we will attempt to meet a clock period of 4.64.
 
 ```
-fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-optimized-4-59.json --dir vivado-runs/sandpile-optimized-4-59 -s synth-verilog.constraints=`pwd`/xdc-files/4-59.xdc
+fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-optimized-4-64.json --dir vivado-runs/sandpile-optimized-4-64 -s synth-verilog.constraints=`pwd`/xdc-files/4-64.xdc
 ```
 
 Then, we will find that place-and-route can meet that frequency:
 ```
-(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-optimized-4-59.json
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-optimized-4-64.json
 1
 ```
 
-We can double check that the frequency of this clock period is MHz:
+We can double check the frequency and calculate the end-to-end latency:
 ```
-(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.frequency' synth-results/sandpile-optimized-4-59.json
-
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.frequency' synth-results/sandpile-optimized-4-64.json
+215.517
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ echo "4.64 * 33632" | bc -l
+156052.48
 ```
 
 
@@ -386,8 +388,8 @@ Now, we can compare the number of LUTs from the reports with the maximum frequen
 ```
 (venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.impl.summary.lut' synth-results/sandpile-original-3-89.json
 779
-(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.impl.summary.lut' synth-results/sandpile-optimized-4-59.json
-TODO
+(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.impl.summary.lut' synth-results/sandpile-optimized-4-64.json
+991
 ```
 
 # Performance comparison (Estimated time: TODO minutes)
