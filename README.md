@@ -37,7 +37,9 @@ cd ~/calyx-profiler-eval
 
 # Kick the tires
 
-### Petal's basic functionality
+We list instructions for testing basic functionality of Petal and Vivado 
+
+### Petal's basic functionality (< 5 min)
 
 (1) Run Petal. In the terminal:
 ```
@@ -48,13 +50,36 @@ fud2 tests/correctness/pipelined-mac.futil -o svgs/pipelined-mac.svg --through p
 
 (2) View the flame graph(s). A flattened flame graph should be created in `svgs/pipelined-mac.svg`. It should look like the below:
 
-![Pipelined Mac Flame graph](figures/pipelined-mac-flat.png "pipelined-mac flattened flame graph")
+![Pipelined Mac Flattened Flame graph](figures/pipelined-mac-flat.png "pipelined-mac flattened flame graph")
 
-A scaled flame graph should also be created in `petal-runs/pipelined-mac/profiler-out`
+A scaled flame graph should also be created in `petal-runs/pipelined-mac/profiler-out/scaled-flame.svg`:
 
-(3) View the timeline view
+![Pipelined Mac Scaled Flame graph](figures/pipelined-mac-scaled.png "pipelined-mac scaled flame graph")
+
+(3) Check the timeline view, which should be in `petal-runs/pipelined-mac/profiler-out/timeline_trace.pftrace`. Navigate to [https://ui.perfetto.dev/](https://ui.perfetto.dev/) in the browser, and then click on `Open trace file` in the left navigation bar. When you open the file, Perfetto should look like this:
+
+![Pipelined Mac timeline view overview](figures/pipelined-mac-timeline-overview.png "pipelined-mac timeline view (starting view)")
+
+(NOTE: There may be a small discrepancy on what the main component is named; it could be `toplevel.main`, `TOP.toplevel.main`, or something similar. In this README we go with `toplevel.main`.)
+
+Both `toplevel.main` and `toplevel.main.mac` are dropdowns, and clicking on them will reveal activity of groups/control within the component. Check that you can navigate the Perfetto view (Press `W` for zooming in, `A` for navigating left, `D` for navigating right, and `S` for zooming out).
 
 ### Vivado kick-the-tires
+
+We will run some commands to ensure that Vivado is properly set up.
+
+(1) Obtaining an area report.
+
+```
+cd ~/calyx
+fud2 tests/correctness/pipelined-mac.futil --to area-report -o pipelined-mac-area.rpt --dir vivado-runs/pipelined-mac-area
+```
+
+This should produce a file 
+
+(2) Obtaining the worst slack.
+
+TODO!!!!
 
 # Step-by-step guide
 
@@ -200,6 +225,3 @@ The output will be This should be contrasted with the performance numbers given 
     - Vivado (for both programs)
       - worst slack
       - area - LUT increase
-
-# Performance Experiments
-
