@@ -86,7 +86,12 @@ Tool Version Limit: 2022.10
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 ```
 
-3. Navigate to the evaluation directory by typing:
+3. Setup the Calyx HardFloat primitives library:
+```
+bash ~/projects/calyx/primitives/float/get_hardfloat.sh
+```
+
+4. Navigate to the evaluation directory by typing:
 ```
 cd ~/Desktop/calyx-profiler-eval
 ```
@@ -369,7 +374,7 @@ fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report --through synt
 
 Then, we will find that place-and-route can meet that frequency:
 ```
-(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-optimized-4-64.json
+7(venv) vagrant@vagrant:~/Desktop/calyx-profiler-eval$ jq '.meet_timing' synth-results/sandpile-optimized-4-64.json
 1
 ```
 
