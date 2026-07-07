@@ -57,7 +57,7 @@ sudo apt update
 sudo apt install libtinfo-dev
 sudo ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5
 ```
-<details>
+</details>
 
 ### Setup instructions once you are in the VM and Vivado is installed.
 
