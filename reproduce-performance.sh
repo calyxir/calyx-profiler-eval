@@ -84,7 +84,7 @@ function run_verilator() {
 	local sim_run_results=${bench_dir}/sim_run_results.csv
 	echo "config,mean,stddev,median,user,system,min,max" > ${sim_run_results}
 	
-	if [[ "${bench_name}" == ffnn ]]; then
+	if [[ "${bench_name}" == "ffnn-original" ]]; then
 	    extra_args="-d papercut -d cell-share"
 	fi
 	
@@ -145,9 +145,9 @@ function run_profiler() {
     fi
 
     if [[ "${bench_name}" == "queues-original" ]]; then
-	extra_args="-s profiler.py-args=\"20000 --keepgoing\""
-    elif [[ "${bench_name}" == ffnn ]]; then
-	extra_args="-s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share\""
+	local extra_args="-s profiler.py-args=\"20000 --keepgoing\""
+    elif [[ "${bench_name}" == "ffnn-original" ]]; then
+	local extra_args="-s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share\""
     fi
 
     fud2_dir=${bench_dir}/fud2
