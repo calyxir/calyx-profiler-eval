@@ -283,10 +283,7 @@ To reproduce post-place-and-route results, we will run synthesis and implementat
 
 ### Queues (Section 10.2; Estimated time: ~10 min)
 
-In the paper, we make the claim:
-> We found that the two versions of the program had a similar critical path and can meet a frequency of 143 MHz, and area decreased, where the total number of LUTs went from 1,251 to 872.
-
-We walk through steps to support this claim.
+We walk through steps to support the claim made in Section 10.2.3 in the paper: both the original and final optimized versions of the packet scheduling queues program had a similar critical path and can meet a frequency of 143 MHz and the optimized version has a lower number of LUTs.
 
 (1) Generate a JSON Vivado summary of the original program:
 
@@ -330,8 +327,7 @@ fud2 case-studies/sec-10/queues-full-opt.futil --to json-report --through synth-
 
 ### Sandpile (Section 11; Estimated time: 20 min)
 
-In the paper, we make the claim:
-> As one may expect from the nature of this optimization, we found that the area increased: the total number of LUTs went from 780 to 982. We also found that while the maximum frequency decreased from 257.7MHz to 217.5MHz, the end-to-end latency improved from 176,679 nanoseconds to 154,370 nanoseconds. We conclude that our final design trades better end-to-end latency for a slightly worse area.
+We walk through steps to support the claim made in Section 11 of the paper under the "_Solution_" paragraph: the optimized version of the sandpile program had a larger area and a lower maximum frequency than the original version, but that the end-to-end latency improved.
 
 1. Identify the maximum frequency and end-to-end latency of the original program. (~10 minutes)
 
