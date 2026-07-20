@@ -33,7 +33,7 @@ data
 vagrant-cache
 
 # scratch directory
-ayaka-sandbox
+sandbox
 
 # generated directories for case study reproduction
 outputs
@@ -44,3 +44,6 @@ case-studies/logs
 
 # Vivado installer
 Xilinx_Unified_*Lin64.bin
+
+# Mac
+.DS_Store
