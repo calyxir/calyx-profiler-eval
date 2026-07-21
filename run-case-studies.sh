@@ -111,8 +111,8 @@ function reproduce_section_9() {
 	# Run Petal on linear-algebra-3mm
 	echo -e "\tRunning Petal on linear-algebra-3mm (resource sharing enabled)..."
 	run_cmd "fud2 linear-algebra-3mm.fuse -o svgs/linear-algebra-3mm.svg --through petal-dahlia -s sim.data=linear-algebra-3mm.data --dir petal-runs/linear-algebra-3mm" ${sec}-petal-3mm-rs-enabled.txt
-	# copy timeline view for easier viewing (Figure 12a: Full timeline view for linear-algebra-3mm with resource sharing)
-	cp petal-runs/linear-algebra-3mm/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-12a.pftrace
+	# copy timeline view for easier viewing (Figure 13a: Full timeline view for linear-algebra-3mm with resource sharing)
+	cp petal-runs/linear-algebra-3mm/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-13a.pftrace
 	
 	# Run Petal on linear-algebra-3mm without resource sharing
 	echo -e "\tRunning Petal on linear-algebra-3mm (resource sharing disabled)..."
@@ -168,7 +168,7 @@ function reproduce_section_10() {
 	# copy timeline view for easier viewing (Figure 14a: Zoomed in timeline view before optimization)
 	cp petal-runs/ffnn-original/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-14a.pftrace
 	# copy group table for easier viewing (Table 1: Snippet of group statistics obtained from ffnn (bb_1-6))
-	cp petal-runs/ffnn-original/profiler-out/group-stats.csv ${RESULTS_DIR}/table-1.csv
+	cp petal-runs/ffnn-original/profiler-out/group-stats.csv ${RESULTS_DIR}/table1.csv
 	
 	# Run Petal on optimized ffnn program
 	echo -e "\tRunning Petal on ffnn (optimized)..."

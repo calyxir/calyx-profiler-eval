@@ -107,7 +107,8 @@ Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 
 3. Setup the Calyx HardFloat primitives library:
 ```
-bash ~/projects/calyx/primitives/float/get_hardfloat.sh
+bash ~/calyx/primitives/float/get_hardfloat.sh
+cp ~/calyx/primitives/float.futil ~/.calyx/primitives
 ```
 
 4. Navigate to the evaluation directory by typing:
@@ -119,13 +120,13 @@ cd ~/Desktop/calyx-profiler-eval
 
 We list instructions for testing basic functionality of Petal and Vivado during the Kick the Tires Phase.
 
-### Petal's basic functionality (< 5 min)
+### Petal's basic functionality (Estimated time: < 5 min)
 
 1. Run Petal on a Calyx program. This step instruments and compiles the input program, simulates the generated Verilog, and processes the RTL trace into visualizations that we will view in steps 2 and 3. In the terminal:
 ```
 cd ~/calyx
 mkdir svgs petal-runs
-fud2 tests/correctness/pipelined-mac.futil -o svgs/pipelined-mac.svg --through profiler -s sim.data=tests/correctness/pipelined-mac.futil.data --dir petal-runs/pipelined-mac
+fud2 tests/correctness/pipelined-mac.futil -o svgs/pipelined-mac.svg --through petal -s sim.data=tests/correctness/pipelined-mac.futil.data --dir petal-runs/pipelined-mac
 ```
 
 2. View the flame graph(s). A flattened flame graph should be created in `svgs/pipelined-mac.svg`. It should look like the below:
@@ -140,11 +141,11 @@ A scaled flame graph should also be created in `petal-runs/pipelined-mac/profile
 
 ![Pipelined Mac timeline view overview](figures/pipelined-mac-timeline-overview.png "pipelined-mac timeline view (starting view)")
 
-(NOTE: There may be a small discrepancy on what the main component is named; it could be `toplevel.main`, `TOP.toplevel.main`, or something similar. In this README we go with `toplevel.main`.)
+(NOTE: There may be a small discrepancy on what the main component is named; it could be `toplevel.main`, `TOP.toplevel.main`, or something similar. In this README we go with `main`.)
 
-Both `toplevel.main` and `toplevel.main.mac` are dropdowns, and clicking on them will reveal activity of groups/control within the component. Check that you can navigate the Perfetto view (Press `W` for zooming in, `A` for navigating left, `D` for navigating right, and `S` for zooming out).
+Both `main` and `main.mac` are dropdowns, and clicking on them will reveal activity of groups/control within the component. Check that you can navigate the Perfetto view (Press `W` for zooming in, `A` for navigating left, `D` for navigating right, and `S` for zooming out).
 
-### [Optional] Vivado kick-the-tires (<5 min)
+### [Optional] Vivado kick-the-tires (Estimated time: <5 min)
 
 We will run commands to ensure that Vivado is properly set up.
 
@@ -242,7 +243,7 @@ We explain each column of the CSV below. All times are in seconds.
 - `oh-inst`: Overhead of instrumentation when tracing (`inst-with-vcd / bl-with-vcd`)
 - `oh-reconstruction`: Overhead of trace reconstruction with respect to non-tracing simulation of the original program (`trace-reconstruction / bl-wo-vcd`)
 
-# Case Study Data Creation (Estimated time: TODO minutes)
+# Case Study Data Creation (Estimated running time: 15 minutes; estimated inspection time: 30 minutes)
 
 Run the `run-case-studies.sh` script. This script runs Petal and Verilator in order to reproduce all resulting figures and cycle counts in the paper.
 
@@ -254,16 +255,23 @@ Logs will be written to the `case-studies/logs` directory, and the script will r
 
 ## Viewing Results
 
-Results will be written to the `case-studies/results` directory. Each figure and table in the paper will have a counterpart file; for example, Figure 4's flame graph will be generated in `case-studies/results/fig-4.svg`. Note that colors in Petal's output could differ from colors used in the paper.
+Results will be written to the `case-studies/results` directory. Each figure and table in the paper will have a counterpart file; for example, Figure 4's flame graph will be generated in `case-studies/results/fig-4.svg`. Additionally, there is a `cycle-counts.csv` file that lists the total cycle counts of every profiled program.
+
+**NOTE:** Line numbers will slightly differ from the corresponding figures in the paper. This is because the figures in the paper are adjusted for code snippet listings within the paper. Additionally, colors in Petal's output could differ from colors used in the paper.
 
 ### Flame Graphs
 
-Flame graphs are outputted as `*.svg` files. Use firefox to open a flame graph file.
+Flame graphs are outputted as `*.svg` files. Use firefox to open a flame graph file. Hovering over boxes in the flame graph will tell you the duration of the cell/control group/group (for Calyx; or block/statement in Dahlia).
 
 ex)
 ```
 firefox case-studies/results/fig-4.svg
 ```
+
+Flame graph figures in the paper:
+- Figure 4
+- Figure 15
+- Figure 21
 
 ### Timeline views
 
@@ -276,37 +284,37 @@ Timeline views are outputted as `*.pftrace` files that can be viewed in [Perfett
 - _Dahlia timeline views_: Each code block (`for`, `if`) will have a corresponding dropdown.
 
 Many timeline view figures were based on a "zoomed-in" view. Here is a guide on how to get the picture represented in each figure:
-- Figure 5: Open the `toplevel.main` dropdown and its `Control Groups` dropdown.
-- Figure 9d: Open the `toplevel.main` dropdown.
+- Figure 5: Open the `main` dropdown and its `Control Groups` dropdown.
+- Figure 9d: Open the `main` dropdown.
 - Figure 9e: Open the `main` dropdown and its `BL0005: for (let k: ubit<4> = 0..2)` dropdown.
-- Figure 10: Open the `toplevel.main` dropdown and navigate to cycle 14160. Figure 11a shows the contents of the `Control Register Updates` track and the `Thread 000` track between cycles 14160-14173 (inclusive), with simplified names:
+- Figure 10: Open the `main` dropdown and navigate to cycle 14160. Figure 11a shows the contents of the `Control Register Updates` track and the `Thread 000` track between cycles 14160-14173 (inclusive), with simplified names:
   - `upd14` corresponds to `read_A_idx`
   - `let17` corresponds to `read_B_idx`
   - `let18` corresponds to `mult_A_B`
   - `upd15` corresponds to `write`
   - `let19` corresponds to `i_next`
-- Figure 12: Open the `toplevel.main` dropdown and navigate to cycle 8180. The view represented in the figure is in cycles 8180-8186 (inclusive). The name mapping is the same as above. Note that the paper simplified the detail where `let18` now takes 4 cycles; this is because the multiplication primitive was given the annotation that it _could_ take 4 cycles..
-- Figure 13a: No navigation required.
-- Figure 13b: No navigation required.
-- Figure 14a: Open the `toplevel.main.forward_instance` dropdown and pin the tracks `Control Register Updates`, `Thread 017`, `Thread 018`, and `Thread 019`. Then, navigate to cycle 1999. The view represented in the figure features cycles 1999-2023 (inclusive).
+- Figure 12: Open the `main` dropdown, open the `Thread 000` dropdown and navigate to cycle 8180. The view represented in the figure is in cycles 8180-8186 (inclusive). The name mapping is the same as above, but the vertical order of groups `upd14`, `let17`, and `let19` may differ. Note that the paper simplified the detail where `let18` now takes 4 cycles; this is because the multiplication primitive was given the annotation that it _could_ take 4 cycles.
+- Figure 13a: Open the `main` dropdown and then the `Thread 000` dropdown. The full timeline view should match the figure (with some slight differences in color).
+- Figure 13b: Open the `main` dropdown and then the `Thread 000` dropdown. The full timeline view should match the figure (with some slight differences in color).
+- Figure 14a: Open the `main.forward_instance` dropdown and pin the tracks `Control Register Updates`, `Thread 017`, `Thread 018`, and `Thread 019` (a pin icon for a track will appear when the cursor hovers over the white track box). Then, navigate to cycle 1999. The view represented in the figure features cycles 1999-2023 (inclusive).
   - `bb0_72`-`bb0_79` corresponds to `bb_1`-`bb_6`
   - `bb0_80`-`bb0_87` corresponds to `bb_7`-`bb_12`
   - `bb0_88`-`bb0_95` corresponds to `bb_13`-`bb_18`
-- Figure 14b: Open the `toplevel.main.forward_instance` dropdown and pin the tracks `Control Register Updates`, `Thread 017`, `Thread 018`, and `Thread 019`. Then, navigate to cycle 1993. The view represented in the figure features cycles 1993-2009 (inclusive). The simplified names are the same as for Figure 13a.
-- Figure 15b: Open the `main.dataplane.myqueue` dropdown, and navigate to cycle 305. The view shown in the figure can be seen on Threads 001-005.
+- Figure 14b: Open the `main.forward_instance` dropdown and pin the tracks `Control Register Updates`, `Thread 017`a, `Thread 018`, and `Thread 019`. Then, navigate to cycle 1993. The view represented in the figure features cycles 1993-2009 (inclusive). The simplified names are the same as for Figure 14a.
+- Figure 15b: Open the `main.dataplane.myqueue` dropdown, and navigate to cycle 305. The view shown in the figure can be seen on Threads 001-005 between cycle 305-374 (inclusive)..
 - Figure 18: No navigation required.
 - Figure 19: No navigation required.
 - Figure 20: No navigation required.
 - Figure 21b: Open the `main` dropdown, the `BL0028: while(spills != 0)` dropdown, the `BL0030: for(let y: ubit<32> = 1..9)` dropdown, and the `BL0031: for(let x: ubit<32> = 1..9)` dropdown. Then, navigate to cycle 1047. The iteration represented in the figure is in cycles 1047-1068 (inclusive).
   - Note: You may observe that there are iterations of the inner for loop that contain an empty gap where no line is active. This empty gap occurs when the guard in the preceding `if` is `false`. Calyx's `static-promotion` compiler pass allocates four cycles for each `if` and its corresponding body, but since the guard did not pass there was no activity on that specific cycle.
-- Figure 21c: Open the `main` dropdown, the `BL0028: while(spills != 0)` dropdown, the `BL0030: for(let y: ubit<32> = 1..9)` dropdown, and the `BL0031: for(let x: ubit<32> = 1..9)` dropdown. Then, navigate to cycle 993. The iteration represented in the figure is in cycles 993-1008 (inclusive).
+d- Figure 21c: Open the `main` dropdown, the `BL0028: while(spills != 0)` dropdown, the `BL0030: for(let y: ubit<32> = 1..9)` dropdown, and the `BL0031: for(let x: ubit<32> = 1..9)` dropdown. Then, navigate to cycle 993. The iteration represented in the figure is in cycles 993-1008 (inclusive).
 
 ### Tables
 
 - Table 1: Open `table1.csv` and check the rows that indicate `bb0_72`-`bb0_79`. 
 - Table 2: `table2.csv` should be the same as Table 2 in the paper.
 
-# [Optional] Vivado result reproduction (Estimated time: ~ minutes)
+# [Optional] Vivado result reproduction (Estimated time: ~30 minutes)
 
 To reproduce post-place-and-route results, we will run synthesis and implementation on Vivado for the original and (final) optimized versions of the program.
 
@@ -447,7 +455,7 @@ Our compiler driver tool fud2 orchestrates commands necessary to compile to/from
 
 External documentation on running Petal via fud2 is also available: https://docs.calyxir.org/running-calyx/profiler.html . In general, one can run Petal using fud2 with the following command structure:
 ```
-fud2 <CALYX_FILE> -o <FLAT_FLAME_NAME>.svg --through profiler -s sim.data=<DATA_FILE> --dir <OUT_DIR>
+fud2 <CALYX_FILE> -o <FLAT_FLAME_NAME>.svg --through petal -s sim.data=<DATA_FILE> --dir <OUT_DIR>
 ```
 where
 - `CALYX_FILE` is the input Calyx file

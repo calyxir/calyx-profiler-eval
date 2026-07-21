@@ -142,6 +142,7 @@ sudo make install
     git clone https://github.com/calyxir/calyx.git
     cd calyx
     cargo build --all
+    cargo build --all --release
     ln -s $(realpath ./target/debug/calyx) ~/.local/bin/calyx
 
     # install fud2
