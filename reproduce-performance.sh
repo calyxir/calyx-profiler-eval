@@ -25,8 +25,8 @@ GEN_CALYX_BENCH_DIR=${DATA_DIR}/futil-files
 LOGS_DIR=${DATA_DIR}/logs
 SCRATCH_DIR=${DATA_DIR}/scratch
 
-WARMUP_COUNT=1 # set to 5 after testing.
-RUN_COUNT=2 # set to 30 after testing.
+WARMUP_COUNT=5 # set to 5 after testing.
+RUN_COUNT=30 # set to 30 after testing.
 
 
 # create new data directory
