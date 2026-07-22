@@ -116,6 +116,18 @@ cp ~/calyx/primitives/float.futil ~/.calyx/primitives
 cd ~/Desktop/calyx-profiler-eval
 ```
 
+### Evaluation repository and Petal navigation
+
+Descriptions for subdirectories and scripts within this repository are as follows:
+- `case-studies`: Contains all of the Calyx/Calyx-Py/Dahlia programs used for case studies and examples in the paper, and the data files necessary for running them.
+- `figures`: Contains figures shown in this README.
+- `vm`: Contains the Vagrantfile and instructions for generating the VM.
+- `xdc-files`: Contains configuration files for Vivado used to identify maximum frequencies.
+- `reproduce-performance.sh`: Script to run performance benchmarking in the `Performance comparison` section.
+- `run-case-studies.sh`: Script to reproduce case study and example figures in the `Case study reproduction` section.
+
+The Calyx repository is located in `~/calyx`, and the source code for Petal is located in `~/calyx/tools/petal`.
+
 # Kick the tires
 
 We list instructions for testing basic functionality of Petal and Vivado during the Kick the Tires Phase.
