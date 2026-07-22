@@ -17,16 +17,16 @@ The evaluation consists of reproduction of figures and performance claims made i
 We list the claims made in the paper and the parts of this artifact that support them.
 
 - In Section 7 of the paper under the paragraph "_Petal Profiling Performance_", we make the following claims about Petal's performance. These claims are supported by the artifact under the "Performance Comparison" section.
-  > Most programs had 204–306 profiling probes inserted, except the forward feeding neural network (FFNN) program described in Section 10.1 which had 3026 probes.
+  > Most programs had 204–306 profiling probes inserted, except the forward feeding neural network (FFNN) program described in Section 10.1 which had 2830 probes.
   > RTL tracing during simulation adds slightly less than a 2× overhead (compared to running a non-RTL tracing simulation) in all five programs.
   > Compared to RTL tracing the original program, RTL tracing the instrumented program adds a <10% overhead for all five programs. For all non-FFNN programs, simulating the instrumented program with RTL tracing took less than 5 seconds, and the FFNN program took slightly less than 3 minutes.
   > For four out of five programs (excluding the packet scheduling queues program in Section 10.2), trace reconstruction took one order of magnitude more time than non-tracing simulation of the original program. For the remaining program, trace reconstruction took two orders of magnitude longer. However, trace reconstruction took less than 8 minutes in all cases.
 
 - In Sections 10 and 11 we make claims about the reduced cycle counts of the programs within each case study. These claims are supported by the artifact under the "Case Study Reproduction" section.
 
-- In Section 10.2.3 of the paper, we claim that both the original and final optimized versions of the packet scheduling queues program had a similar critical path and can meet a frequency of 143 MHz and the optimized version has a lower number of LUTs. This claim is supported by the artifact under the "Vivado Results" > "Queues" section.
+- In Section 10.2.3 of the paper, we claim that both the original and final optimized versions of the packet scheduling queues program had a similar critical path and can meet a frequency of 143 MHz and the optimized version has a lower number of LUTs. This claim is supported by the artifact under the "Vivado result reproduction" > "Queues" section.
 
-- In Section 11 of the paper under the "_Solution_" paragraph, we claim that the optimized version of the sandpile program had a larger area and a lower maximum frequency than the original version, but that the end-to-end latency improved. This claim is supported by the artifact under the "Vivado Results" > "Sandpile" section.
+- In Section 11 of the paper under the "_Solution_" paragraph, we claim that the optimized version of the sandpile program had a larger area and a lower maximum frequency than the original version, but that the end-to-end latency improved. This claim is supported by the artifact under the "Vivado Result Reproduction" > "Sandpile" section.
 
 # Download & Installation
 
@@ -141,7 +141,7 @@ A scaled flame graph should also be created in `petal-runs/pipelined-mac/profile
 
 ![Pipelined Mac timeline view overview](figures/pipelined-mac-timeline-overview.png "pipelined-mac timeline view (starting view)")
 
-(NOTE: There may be a small discrepancy on what the main component is named; it could be `toplevel.main`, `TOP.toplevel.main`, or something similar. In this README we go with `main`.)
+(NOTE: There may be a small discrepancy on what the main component is named; it could be `toplevel.main`, `TOP.toplevel.main`, or something similar. In this writeup we will use `main`.)
 
 Both `main` and `main.mac` are dropdowns, and clicking on them will reveal activity of groups/control within the component. Check that you can navigate the Perfetto view (Press `W` for zooming in, `A` for navigating left, `D` for navigating right, and `S` for zooming out).
 
@@ -208,7 +208,7 @@ This evaluation is focused on the post-place-and-route results rather than the s
 
 - **Performance comparison**: Run experiments to reproduce Petal's performance (briefly described in Section 7).
 
-- **Case study data creation**: Generate the figures found in the paper by running Petal.
+- **Case study reproduction**: Generate the figures found in the paper by running Petal.
 
 - [Optional] **Vivado result reproduction**: Generate the synthesis results found in the paper.
 
@@ -243,7 +243,9 @@ We explain each column of the CSV below. All times are in seconds.
 - `oh-inst`: Overhead of instrumentation when tracing (`inst-with-vcd / bl-with-vcd`)
 - `oh-reconstruction`: Overhead of trace reconstruction with respect to non-tracing simulation of the original program (`trace-reconstruction / bl-wo-vcd`)
 
-# Case Study Data Creation (Estimated running time: 15 minutes; estimated inspection time: 30 minutes)
+Our version of the results is also available in `case-studies/performance-results.csv`.
+
+# Case Study Reproduction (Estimated running time: 15 minutes; estimated inspection time: 30 minutes)
 
 Run the `run-case-studies.sh` script. This script runs Petal and Verilator in order to reproduce all resulting figures and cycle counts in the paper.
 
@@ -468,4 +470,61 @@ where
 
 In this section, we will walk through an example of how to use Petal to observe the performance impact of changes to programs.
 
-1. Choose a starting program to optimize. 
+0. Choose a starting program (in Calyx/Dahlia/Calyx-Py) to optimize. In our example, we will use a Calyx matrix multiplication program, which can be found at `~/calyx/tests/firrtl/matrix_multiply.futil`.
+
+1. Run Petal on the original program. Our example code is written in Calyx so we will use the `--through petal` flag to run only Calyx-level profiling. For Dahlia programs, one should use the `--through petal-dahlia` flag to run Dahlia and Calyx-level profiling, and for Calyx-Py, one should use the `--throug petal-calyx-py` flag to run Calyx-Py and Calyx-level profiling.
+
+ex)
+```
+cd ~/calyx
+mkdir -p svgs petal-runs
+fud2 tests/firrtl/matrix_multiply.futil -o svgs/matrix_multiply.svg --through petal -s sim.data=tests/firrtl/matrix_multiply.futil.data --dir petal-runs/matrix_multiply
+```
+
+2. Once the command terminates, a `profiler-out` subdirectory should be created under the path passed under the `--dir` flag in the previous command. Open the scaled flame graph in a browser to observe the duration of various routines in the program.
+
+ex)
+```
+firefox petal-runs/matrix_multiply/profiler-out/scaled-flame.svg
+```
+will show:
+![Matrix Multiply Flame graph](figures/matrix_multiply_original.png) "Matrix Multiply scaled flame graph")
+
+Hovering over the `main` box will tell us that the whole program took 1141 cycles. Through the flame graph, we also notice that there are two component cells (`main` and `mul_add [multiply_and_add]`) with noticable control overhead such as the length of the blank space above the `tdcc ~ L33:seq (ctrl)` box (to the left of the yellow `do_add` box). This overhead comes from registers that manage control within the component.
+
+Additionally, you can display the timeline view by going to [https://ui.perfetto.dev/](https://ui.perfetto.dev/) in the browser and opening `timeline_trace.pftrace` (In our example, the full path would be `petal-runs/matrix_multiply/profiler-out/timeline_trace.pftrace`.
+
+3. Modify the program. In our example, we will make a simple optimization to remove the control overhead in the `mul_add [multiply_and_add]` cell (the blank space mentioned in Step 2). To do so, we will add annotations hinting to the Calyx compiler that the groups in the `multiply_and_add` component will always take a fixed number of cycles and therefore control registers (and any control groups) are not necessary.
+
+If you are following our example, make the following modifications to `~/calyx/tests/firrtl/matrix_multiply.futil`:
+
+3.1. On line 14, add a `<"promotable"=4>` annotation to the group `do_mul`.
+
+```
+-    group do_mul {
++    group do_mul<"promotable"=4> {
+```
+
+3.2. On line 23, add a `<"promotable"=1>` annotation to the group `do_add`.
+```
+-    group do_add {
++    group do_add<"promotable"=1> {
+```
+
+4. Run Petal on the program again. Note that the below command chooses a different path for the `--dir` flag to preserve profiling results of the original version of the program, but this is not necessary.
+
+ex)
+```
+fud2 tests/firrtl/matrix_multiply.futil -o svgs/matrix_multiply_opt.svg --through petal -s sim.data=tests/firrtl/matrix_multiply.futil.data --dir petal-runs/matrix_multiply_opt
+```
+
+5. Observe the changes in the produced flame graph (and timeline view).
+
+ex)
+```
+firefox petal-runs/matrix_multiply_opt/profiler-out/scaled-flame.svg
+```
+will show:
+![Matrix multiply flame graph after small optimization](figures/matrix_multiply_quick_opt.png) "Matrix Multiply scaled flame graph after small optimization")
+
+Hovering over the `main` box shows that the total number of cycles is now 1013, meaning our small optimization removed 101 cycles from the original program. We can also notice that the control group in `mul_add` (the orange `tdcc ~ L33:seq (ctrl)` in the original program) no longer exists because the groups in `multiply_and_add` only need static control. Another indication that we removed all control register overhead in the `multiply_and_add` component is that the length of the `mul_add [multiply_and_add]` box is equal to the added length of the `do_add` and `do_mul` boxes, which means that all of those cycles were spent on meaningful computation.
