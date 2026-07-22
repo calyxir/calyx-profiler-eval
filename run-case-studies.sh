@@ -154,11 +154,11 @@ function reproduce_section_10() {
 
 	# ffnn Verilator runs for unified cycle collection
 	echo -e "\tRunning Verilator on ffnn (original)..."
-	run_cmd "fud2 ffnn-original.futil -o outputs/ffnn-original.json --through verilator -s sim.data=ffnn.data -s calyx.args=\"-d papercut -d cell-share\"" ${sec}-verilator-ffnn-original.txt
+	run_cmd "fud2 ffnn-original.futil -o outputs/ffnn-original.json --through verilator -s sim.data=ffnn.data -s calyx.args=\"-d papercut -d cell-share -d group2seq\"" ${sec}-verilator-ffnn-original.txt
 	echo "ffnn-original,"$( get_cycles outputs/ffnn-original.json ) >> ${CYCLE_COUNTS_RES}
 	
 	echo -e "\tRunning Verilator on ffnn (optimized)..."
-	run_cmd "fud2 ffnn-optimized.futil -o outputs/ffnn-optimized.json --through verilator -s sim.data=ffnn.data -s calyx.args=\"-d papercut -d cell-share\"" ${sec}-verilator-ffnn-original.txt
+	run_cmd "fud2 ffnn-optimized.futil -o outputs/ffnn-optimized.json --through verilator -s sim.data=ffnn.data -s calyx.args=\"-d papercut -d cell-share -d group2seq\"" ${sec}-verilator-ffnn-original.txt
 	echo "ffnn-optimized,"$( get_cycles outputs/ffnn-optimized.json ) >> ${CYCLE_COUNTS_RES}
 
 	# ffnn Petal runs
