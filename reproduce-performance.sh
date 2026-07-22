@@ -5,6 +5,7 @@ fi
 
 CALYX_DIR=$1
 RUSTED_PETAL=${CALYX_DIR}/target/release/petal
+echo ${RUSTED_PETAL}
 
 if [ ! -d ${CALYX_DIR} ]; then
     echo "${CALYX_DIR} is not a valid directory!"
@@ -160,7 +161,7 @@ function run_profiler() {
     hf_file=${bench_dir}/hf-profiler-e2e.csv
     svg_file=${bench_dir}/f.svg
 	
-    command="fud2 ${bench_file} -o ${svg_file} --through ${profiler_type} -s sim.data=${bench_data} ${extra_args}"
+    command="fud2 ${bench_file} -o ${svg_file} --through ${profiler_type} -s sim.data=${bench_data} ${extra_args} -s rusted_petal=${RUSTED_PETAL}"
     prep_command="rm -f ${svg_file}"
     echo "Running e2e Petal runs..."
 
