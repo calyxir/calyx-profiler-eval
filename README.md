@@ -227,7 +227,7 @@ This evaluation is focused on the post-place-and-route results rather than the s
 - **Reproducibility Guidelines**
   - [Optional] **Profiling with Petal**: Obtain profiling figures from an example program and perform an optimization.
 
-# Performance comparison (Estimated time: TODO minutes)
+# Performance comparison (Estimated time: ~5 hours)
 
 Here, we will reproduce claims about the performance of Petal given in Section 7 under the paragraph "_Petal profiling performance_":
 > Most programs had 204–306 profiling probes inserted, except the forward feeding neural network (FFNN) program described in Section 10.1 which had 3026 probes.
@@ -255,7 +255,7 @@ We explain each column of the CSV below. All times are in seconds.
 - `oh-inst`: Overhead of instrumentation when tracing (`inst-with-vcd / bl-with-vcd`)
 - `oh-reconstruction`: Overhead of trace reconstruction with respect to non-tracing simulation of the original program (`trace-reconstruction / bl-wo-vcd`)
 
-Our version of the results is also available in `case-studies/performance-results.csv`.
+Our version of the results is also available in `case-studies/paper-performance-results.csv`.
 
 # Case Study Reproduction (Estimated running time: 15 minutes; estimated inspection time: 30 minutes)
 
