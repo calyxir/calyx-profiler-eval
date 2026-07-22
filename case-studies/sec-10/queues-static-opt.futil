@@ -269,6 +269,8 @@ component pifo<"pos"={27}>(cmd: 1, value: 32) -> () {
     @pos{51} hot_incr_1_20 = std_add(32);
     @pos{58} cmd_eq_1_21 = std_eq(1);
     @pos{58} cmd_eq_0_22 = std_eq(1);
+    // register for manually unrolling comb group
+    opt_neq_4_group_reg = std_reg(1);
   }
   wires {
     group og_hot_store_to_reg<"pos"={37}, "promotable"=1> {
@@ -288,10 +290,20 @@ component pifo<"pos"={27}>(cmd: 1, value: 32) -> () {
       eq_3.left = err.out;
       eq_3.right = 1'd0;
     }
-    comb group neq_4_group {
+    // manually desugaring comb group
+    group opt_neq_4_group<"pos"={53}> {
       neq_4.left = err.out;
       neq_4.right = 1'd0;
+      opt_neq_4_group_reg.in = neq_4.out;
+      opt_neq_4_group_reg.write_en = 1'd1;
+      opt_neq_4_group[done] = opt_neq_4_group_reg.done;
     }
+    // original comb group start
+    // comb group neq_4_group {
+    //   neq_4.left = err.out;
+    //   neq_4.right = 1'd0;
+    // }
+    // original comb group end
     group raise_err<"pos"={42}, "promotable"=1> {
       err.in = 1'd1;
       err.write_en = 1'd1;
@@ -374,7 +386,10 @@ component pifo<"pos"={27}>(cmd: 1, value: 32) -> () {
         @pos{55} seq {
           @pos{55} og_hot_store_to_reg;
           @pos{55} raise_err;
-          @pos{53} while neq_4.out with neq_4_group {
+	  // manually desugaring the while group
+	  @pos{53} opt_neq_4_group;
+	  @pos{53} while opt_neq_4_group_reg.out {
+          // @pos{53} while neq_4.out with neq_4_group {
             @pos{53} seq {
               @pos{53} lower_err;
               @pos{47} if hot_out_eq_0_12.out {
@@ -405,6 +420,7 @@ component pifo<"pos"={27}>(cmd: 1, value: 32) -> () {
               } else {
                 @pos{52} hot_incr_1_20_group;
               }
+	      @pos{53} opt_neq_4_group;
             }
           }
           @pos{55} length_decr_1_6_group;
@@ -465,14 +481,20 @@ component main<"pos"={59}>() -> () {
     @pos{88} lt_6 = std_lt(32);
     @pos{89} not_7 = std_not(1);
     @pos{98} reg_4_incr_1_8 = std_add(32);
+    // added for optimization
+    @pos{99} opt_compute_keep_looping_reg = std_reg(1);
   }
   wires {
-    comb group Compute_keep_looping {
+    // optimization
+    group opt_compute_keep_looping<"pos"={99}> {
       lt_6.left = reg_4.out;
       lt_6.right = 32'd20000;
       not_7.in = reg_3.out;
       and_5.left = lt_6.out;
       and_5.right = 1'd1;
+      opt_compute_keep_looping_reg.in = and_5.out;
+      opt_compute_keep_looping_reg.write_en = 1'd1;
+      opt_compute_keep_looping[done] = opt_compute_keep_looping_reg.done;
     }
     group lower_has_ans<"pos"={90}> {
       reg_1.in = 1'd0;
@@ -514,7 +536,10 @@ component main<"pos"={59}>() -> () {
     }
   }
   control {
-    @pos{99} while and_5.out with Compute_keep_looping {
+  seq {
+  @pos{99} opt_compute_keep_looping;
+    @pos{99} while opt_compute_keep_looping_reg.out {
+    // @pos{99} while and_5.out with Compute_keep_looping {
       @pos{99} seq {
         @pos{99} lower_has_ans;
         @pos{99} lower_err;
@@ -530,8 +555,10 @@ component main<"pos"={59}>() -> () {
         }
 
         @pos{99} reg_4_incr_1_8_group;
+	@pos{99} opt_compute_keep_looping;
       }
     }
+  }
   }
 }
 component dataplane<"pos"={60}>() -> () {

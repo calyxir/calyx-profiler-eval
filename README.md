@@ -34,7 +34,7 @@ The artifact is available in a Virtual Machine packaged as an OVA file, of which
 
 **The username is `vagrant`, and the password is `vagrant`.**
 
-**NOTE:** An internet connection is necessary for Vivado installation and for opening Perfetto UI to view timeline views.
+**NOTE:** An internet connection is necessary for Vivado installation, opening Perfetto UI to view timeline views, and reading online documentation on Petal.
 
 ### [Optional] Setting up Vivado (Requires ~59GB; Estimated time: 1.5-4 hours)
 
@@ -120,7 +120,7 @@ cd ~/Desktop/calyx-profiler-eval
 
 We list instructions for testing basic functionality of Petal and Vivado during the Kick the Tires Phase.
 
-### Petal's basic functionality (Estimated time: < 5 min)
+### Petal's basic functionality (Estimated time: < 5 minutes)
 
 1. Run Petal on a Calyx program. This step instruments and compiles the input program, simulates the generated Verilog, and processes the RTL trace into visualizations that we will view in steps 2 and 3. In the terminal:
 ```
@@ -145,7 +145,7 @@ A scaled flame graph should also be created in `petal-runs/pipelined-mac/profile
 
 Both `main` and `main.mac` are dropdowns, and clicking on them will reveal activity of groups/control within the component. Check that you can navigate the Perfetto view (Press `W` for zooming in, `A` for navigating left, `D` for navigating right, and `S` for zooming out).
 
-### [Optional] Vivado kick-the-tires (Estimated time: <5 min)
+### [Optional] Vivado kick-the-tires (Estimated time: <5 minutes)
 
 We will run commands to ensure that Vivado is properly set up.
 

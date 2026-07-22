@@ -129,17 +129,17 @@ function create_table_2() {
     echo "Strategy,Cycles-reduced,%-cycles-reduced" > ${table_2_file}
     sc_reduced=$( jq ".cycles" outputs/queues-switch-case-opt.json | xargs -I {} echo "${total_cycles} - {}" | bc -l)
     sc_reduced_p=$( round $( echo "(${sc_reduced} / ${total_cycles}) * 100" | bc -l ) 1 )
-    static_reduced=$( jq ".cycles" outputs/queues-static-opt.json | xargs -I {} echo "(${total_cycles} - ${sc_reduced}) - {}" | bc -l )
-    static_reduced_p=$( round $( echo "(${static_reduced} / ${total_cycles}) * 100" | bc -l ) 1 )
-    while_reduced=$( jq ".cycles" outputs/queues-while-opt.json | xargs -I {} echo "(${total_cycles} - (${sc_reduced} + ${static_reduced})) - {}" | bc -l )
+    while_reduced=$( jq ".cycles" outputs/queues-while-opt.json | xargs -I {} echo "(${total_cycles} - ${sc_reduced}) - {}" | bc -l )
     while_reduced_p=$( round $( echo "(${while_reduced} / ${total_cycles}) * 100" | bc -l ) 1 )
+    static_reduced=$( jq ".cycles" outputs/queues-static-opt.json | xargs -I {} echo "(${total_cycles} - (${sc_reduced} + ${while_reduced})) - {}"  | bc -l )
+    static_reduced_p=$( round $( echo "(${static_reduced} / ${total_cycles}) * 100" | bc -l ) 1 )
     total_reduced=$( jq ".cycles" outputs/queues-full-opt.json | xargs -I {} echo "${total_cycles} - {}" | bc -l )
     other_reduced=$( echo "${total_reduced} - (${sc_reduced} + ${static_reduced} + ${while_reduced})" | bc -l )
     other_reduced_p=$( round $( echo "(${other_reduced} / ${total_cycles}) * 100" | bc -l ) 1 )
     total_reduced_p=$( round $( echo "(${total_reduced} / ${total_cycles}) * 100" | bc -l ) 1 )
-    echo "static,${static_reduced},${static_reduced_p}" >> ${table_2_file}
     echo "switch-case,${sc_reduced},${sc_reduced_p}" >> ${table_2_file}
     echo "while,${while_reduced},${while_reduced_p}" >> ${table_2_file}
+    echo "static,${static_reduced},${static_reduced_p}" >> ${table_2_file}
     echo "other,${other_reduced},${other_reduced_p}" >> ${table_2_file}
     echo "total,${total_reduced},${total_reduced_p}" >> ${table_2_file}
 }
