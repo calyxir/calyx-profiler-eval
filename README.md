@@ -488,7 +488,7 @@ ex)
 firefox petal-runs/matrix_multiply/profiler-out/scaled-flame.svg
 ```
 will show:
-![Matrix Multiply Flame graph](figures/matrix_multiply_original.png) "Matrix Multiply scaled flame graph")
+![Matrix Multiply Flame graph](figures/matrix_multiply_original.png)
 
 Hovering over the `main` box will tell us that the whole program took 1141 cycles. Through the flame graph, we also notice that there are two component cells (`main` and `mul_add [multiply_and_add]`) with noticable control overhead such as the length of the blank space above the `tdcc ~ L33:seq (ctrl)` box (to the left of the yellow `do_add` box). This overhead comes from registers that manage control within the component.
 
@@ -525,6 +525,6 @@ ex)
 firefox petal-runs/matrix_multiply_opt/profiler-out/scaled-flame.svg
 ```
 will show:
-![Matrix multiply flame graph after small optimization](figures/matrix_multiply_quick_opt.png) "Matrix Multiply scaled flame graph after small optimization")
+![Matrix multiply flame graph after small optimization](figures/matrix_multiply_quick_opt.png)
 
 Hovering over the `main` box shows that the total number of cycles is now 1013, meaning our small optimization removed 101 cycles from the original program. We can also notice that the control group in `mul_add` (the orange `tdcc ~ L33:seq (ctrl)` in the original program) no longer exists because the groups in `multiply_and_add` only need static control. Another indication that we removed all control register overhead in the `multiply_and_add` component is that the length of the `mul_add [multiply_and_add]` box is equal to the added length of the `do_add` and `do_mul` boxes, which means that all of those cycles were spent on meaningful computation.
