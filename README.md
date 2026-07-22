@@ -270,6 +270,7 @@ firefox case-studies/results/fig-4.svg
 
 Flame graph figures in the paper:
 - Figure 4
+  - Control groups are formatted slightly differently than what is in the paper. For example, `tdcc2 ~ L37:seq (ctrl)` would correspond to `seq @ line 37`. Additionally, `invoke_s10` is a compiler auto-generated group that corresponds to `run_s1`.
 - Figure 15
 - Figure 21
 

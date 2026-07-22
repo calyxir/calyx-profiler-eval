@@ -4,9 +4,15 @@ if [ $# -lt 1 ]; then
 fi
 
 CALYX_DIR=$1
+RUSTED_PETAL=${CALYX_DIR}/target/release/petal
 
 if [ ! -d ${CALYX_DIR} ]; then
     echo "${CALYX_DIR} is not a valid directory!"
+    exit 1
+fi
+
+if [ ! -e ${RUSTED_PETAL} ]; then
+    echo "Petal needs to be compiled in release mode! Run `cargo build --all --release` from ${CALYX_DIR}."
     exit 1
 fi
 
@@ -18,8 +24,8 @@ GEN_CALYX_BENCH_DIR=${DATA_DIR}/futil-files
 LOGS_DIR=${DATA_DIR}/logs
 SCRATCH_DIR=${DATA_DIR}/scratch
 
-WARMUP_COUNT=5 # set to 5 after testing.
-RUN_COUNT=30 # set to 30 after testing.
+WARMUP_COUNT=1 # set to 5 after testing.
+RUN_COUNT=2 # set to 30 after testing.
 
 
 # create new data directory
@@ -134,13 +140,13 @@ function run_profiler() {
     local sim_run_results=${bench_dir}/sim_run_results.csv
     
     if [[ "${bench_file}" == *".fuse" ]]; then
-	profiler_type="dahlia-profiler"
-	profscript_extra_args="--dahlia-parent-map parent-map.json --adl-mapping-file adl-metadata.json"
+	profiler_type="petal-dahlia"
+	profscript_extra_args="--dahlia-parent-map parent-map.json --adl-file adl-metadata.json"
     elif [[ "${bench_file}" == *".py" ]]; then
-	profiler_type="calyx-py-profiler"
-	profscript_extra_args="--adl-mapping-file adl-metadata.json"
+	profiler_type="petal-calyx-py"
+	profscript_extra_args="--adl-file adl-metadata.json"
     else
-	profiler_type="profiler"
+	profiler_type="petal"
 	profscript_extra_args=""
     fi
 
@@ -155,11 +161,11 @@ function run_profiler() {
     svg_file=${bench_dir}/f.svg
 	
     command="fud2 ${bench_file} -o ${svg_file} --through ${profiler_type} -s sim.data=${bench_data} ${extra_args}"
-    prep_command="rm -f ${svg_file}}"
-    echo "Running e2e profiler runs..."
+    prep_command="rm -f ${svg_file}"
+    echo "Running e2e Petal runs..."
 
     ( hyperfine "${command}" --prepare "${prep_command}" --warmup ${WARMUP_COUNT} --runs ${RUN_COUNT} --export-csv ${hf_file} ) &> ${bench_dir}/gol-profiler-e2e-hyperfine # --show-output to debug
-    echo "profiler-e2e,"$( tail -n +2 ${hf_file} | cut -d, -f2- ) >> ${sim_run_results}
+    echo "petal-e2e,"$( tail -n +2 ${hf_file} | cut -d, -f2- ) >> ${sim_run_results}
 
     echo "Running profiler once and keeping directory to check runtime of script..."
     # run fud2 once to get all relevant files
@@ -168,15 +174,15 @@ function run_profiler() {
 	eval "${command} --dir ${fud2_profiler}"
     ) &> ${bench_dir}/gol-collect-profiler-fud2
 
-    echo "Running hyperfine runs for profiler script..."
-    python_command="profiler instrumented.vcd cells.json fsm.json shared-cells.json enable-par-track.json path-descriptors.json profiler-out2 f.folded --ctrl-pos-file ctrl-pos.json  ${profscript_extra_args}"
-    hf_profscript=${bench_dir}/hf-profiler-script.csv
+    echo "Running hyperfine runs for trace reconstruction..."
+    reconstruction_command="${RUSTED_PETAL} instrumented.vcd fsm.json path-descriptors.json ctrl-pos.json shared-cells.json enable-par-track.json rusted-petal-out --scaled-flame-out rs.folded --flat-flame-out rf.folded ${profscript_extra_args}"
+    hf_profscript=${bench_dir}/hf-trace-reconstruction.csv
 
     (
 	cd ${fud2_profiler}
-	hyperfine "${python_command}" --warmup ${WARMUP_COUNT} --runs ${RUN_COUNT} --export-csv ${hf_profscript}
-    ) &> ${bench_dir}/gol-profiler-script-hyperfine
-    echo "profiler-script,"$( tail -n +2 ${hf_profscript} | cut -d, -f2- ) >> ${sim_run_results}
+	hyperfine "${reconstruction_command}" --warmup ${WARMUP_COUNT} --runs ${RUN_COUNT} --export-csv ${hf_profscript}
+    ) &> ${bench_dir}/gol-trace-reconstruction-hyperfine
+    echo "trace-reconstruction,"$( tail -n +2 ${hf_profscript} | cut -d, -f2- ) >> ${sim_run_results}
 }
 
 function process_results() {
@@ -193,8 +199,8 @@ function process_results() {
     bl_vcd=$( grep "bl-with-vcd" ${sim_run_results} | cut -d, -f2 )
     it_normal=$( grep "inst-wo-vcd" ${sim_run_results} | cut -d, -f2 )
     it_vcd=$( grep "inst-with-vcd" ${sim_run_results} | cut -d, -f2 )
-    p_e2e=$( grep "profiler-e2e" ${sim_run_results} | cut -d, -f2 )
-    p_script=$( grep "profiler-script" ${sim_run_results} | cut -d, -f2 )
+    p_e2e=$( grep "petal-e2e" ${sim_run_results} | cut -d, -f2 )
+    p_script=$( grep "trace-reconstruction" ${sim_run_results} | cut -d, -f2 )
 
     # oh-vcd,oh-inst,oh-reconstruction
     # VCD vs non-VCD
@@ -211,7 +217,7 @@ function process_results() {
 function main() {
 
     results_csv=${DATA_DIR}/results.csv
-    echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,trace-reconstruction,profiler-e2e,oh-vcd,oh-inst,oh-reconstruction" > ${results_csv}
+    echo "benchmark,probe-count,bl-wo-vcd,inst-wo-vcd,bl-with-vcd,inst-with-vcd,trace-reconstruction,petal-e2e,oh-vcd,oh-inst,oh-reconstruction" > ${results_csv}
     
     for bench_info in $( cat ${CASE_STUDIES_DIR}/performance-benchmark-order.txt | grep -v "#"  ); do
 	bench_file=${CASE_STUDIES_DIR}/$( echo "${bench_info}" | cut -d';' -f1 )

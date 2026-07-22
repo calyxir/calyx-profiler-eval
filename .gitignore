@@ -41,6 +41,7 @@ svgs
 petal-runs
 case-studies/results
 case-studies/logs
+performance-data
 
 # Vivado installer
 Xilinx_Unified_*Lin64.bin
