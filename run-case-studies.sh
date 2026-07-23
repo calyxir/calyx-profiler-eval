@@ -104,7 +104,7 @@ function reproduce_section_9() {
 	
 	# Run Petal on linear-algebra-2mm without static promotion
 	echo -e "\tRunning Petal on linear-algebra-2mm (static promotion disabled)..."
-	run_cmd "fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm-disable-static-promotion.svg --through dahlia-profiler -s sim.data=linear-algebra-2mm.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d static-promotion -d group2seq\" --dir petal-runs/linear-algebra-2mm-disable-static-promotion" ${sec}-petal-2mm-sp-disabled.txt
+	run_cmd "fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm-disable-static-promotion.svg --through petal-dahlia -s sim.data=linear-algebra-2mm.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d static-promotion -d group2seq\" --dir petal-runs/linear-algebra-2mm-disable-static-promotion" ${sec}-petal-2mm-sp-disabled.txt
 	# copy timeline view for easier viewing (Figure 10: Zoomed in timeline view without static promotion)
 	cp petal-runs/linear-algebra-2mm-disable-static-promotion/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-10.pftrace
 	
@@ -164,7 +164,7 @@ function reproduce_section_10() {
 	# ffnn Petal runs
 	# NOTE: Maybe worth adding an option to disable ffnn runs because this will take a while.
 	echo -e "\tRunning Petal on ffnn (original)..."
-	run_cmd "fud2 ffnn-original.futil -o svgs/ffnn-original.svg --through petal -s sim.data=ffnn.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share\" --dir petal-runs/ffnn-original" ${sec}-petal-ffnn-original.txt
+	run_cmd "fud2 ffnn-original.futil -o svgs/ffnn-original.svg --through petal -s sim.data=ffnn.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share -d group2seq\" --dir petal-runs/ffnn-original" ${sec}-petal-ffnn-original.txt
 	# copy timeline view for easier viewing (Figure 14a: Zoomed in timeline view before optimization)
 	cp petal-runs/ffnn-original/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-14a.pftrace
 	# copy group table for easier viewing (Table 1: Snippet of group statistics obtained from ffnn (bb_1-6))
@@ -172,7 +172,7 @@ function reproduce_section_10() {
 	
 	# Run Petal on optimized ffnn program
 	echo -e "\tRunning Petal on ffnn (optimized)..."
-	run_cmd "fud2 ffnn-optimized.futil -o svgs/ffnn-optimized.svg --through petal -s sim.data=ffnn.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share\" --dir petal-runs/ffnn-optimized" ${sec}-petal-ffnn-optimized.txt
+	run_cmd "fud2 ffnn-optimized.futil -o svgs/ffnn-optimized.svg --through petal -s sim.data=ffnn.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share -d group2seq\" --dir petal-runs/ffnn-optimized" ${sec}-petal-ffnn-optimized.txt
 	# copy timeline view for easier viewing (Figure 14b: Zoomed in timeline view after optimization)
 	cp petal-runs/ffnn-optimized/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-14b.pftrace
 

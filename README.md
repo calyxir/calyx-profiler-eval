@@ -31,7 +31,7 @@ We list the claims made in the paper and the parts of this artifact that support
 
 # Download & Installation
 
-The artifact is available in a Virtual Machine packaged as an OVA file, of which a permanent link is available [here](). We assume that you are using [VirtualBox](https://www.virtualbox.org/). We also include instructions for building the virtual machine using Vagrant in the `vm` directory.
+The artifact is available in a Ubuntu 24.04 Virtual Machine packaged as an OVA file, of which a permanent link is available [here](). We assume that you are using [VirtualBox](https://www.virtualbox.org/); we used VirtualBox version . **The Virtual Machine's platform architecture is x86 and therefore the machine cannot be run on ARM-based Macs.** We also include instructions for building the virtual machine using Vagrant in the `vm` directory.
 
 **The username is `vagrant`, and the password is `vagrant`.**
 
@@ -117,7 +117,9 @@ cp ~/calyx/primitives/float.futil ~/.calyx/primitives
 cd ~/Desktop/calyx-profiler-eval
 ```
 
-### Evaluation repository and Petal navigation
+Unless noted otherwise by a `cd ~/calyx` command within the step or an earlier step in the same section, all commands should be run from the evaluation directory.
+
+### Evaluation directory file structure and Petal source code
 
 Descriptions for subdirectories and scripts within this repository are as follows:
 - `case-studies`: Contains all of the Calyx/Calyx-Py/Dahlia programs used for case studies and examples in the paper, and the data files necessary for running them.
@@ -308,12 +310,12 @@ Many timeline view figures were based on a "zoomed-in" view. Here is a guide on 
 - Figure 12: Open the `main` dropdown, open the `Thread 000` dropdown and navigate to cycle 8180. The view represented in the figure is in cycles 8180-8186 (inclusive). The name mapping is the same as above, but the vertical order of groups `upd14`, `let17`, and `let19` may differ. Note that the paper simplified the detail where `let18` now takes 4 cycles; this is because the multiplication primitive was given the annotation that it _could_ take 4 cycles.
 - Figure 13a: Open the `main` dropdown and then the `Thread 000` dropdown. The full timeline view should match the figure (with some slight differences in color).
 - Figure 13b: Open the `main` dropdown and then the `Thread 000` dropdown. The full timeline view should match the figure (with some slight differences in color).
-- Figure 14a: Open the `main.forward_instance` dropdown and pin the tracks `Control Register Updates`, `Thread 017`, `Thread 018`, and `Thread 019` (a pin icon for a track will appear when the cursor hovers over the white track box). Then, navigate to cycle 1999. The view represented in the figure features cycles 1999-2023 (inclusive).
+- Figure 14a: Open the `main.forward_instance` dropdown and pin the tracks `Control Register Updates`, `Thread 017`, `Thread 018`, and `Thread 019` (a pin icon for a track will appear when the cursor hovers over the white track box). Then, navigate to cycle 1855. The view represented in the figure features cycles 1855-1876 (inclusive).
   - `bb0_72`-`bb0_79` corresponds to `bb_1`-`bb_6`
   - `bb0_80`-`bb0_87` corresponds to `bb_7`-`bb_12`
   - `bb0_88`-`bb0_95` corresponds to `bb_13`-`bb_18`
-- Figure 14b: Open the `main.forward_instance` dropdown and pin the tracks `Control Register Updates`, `Thread 017`a, `Thread 018`, and `Thread 019`. Then, navigate to cycle 1993. The view represented in the figure features cycles 1993-2009 (inclusive). The simplified names are the same as for Figure 14a.
-- Figure 15b: Open the `main.dataplane.myqueue` dropdown, and navigate to cycle 305. The view shown in the figure can be seen on Threads 001-005 between cycle 305-374 (inclusive)..
+- Figure 14b: Open the `main.forward_instance` dropdown and pin the tracks `Control Register Updates`, `Thread 017`a, `Thread 018`, and `Thread 019`. Then, navigate to cycle 1849. The view represented in the figure features cycles 1849-1865 (inclusive). The simplified names are the same as for Figure 14a. Note that the paper draft simplified the detail where `bb0_72`/`bb0_80`/`bb0_88` and `bb0_77`/`bb0_85`/`bb0_93` now take 4 cycles; this is because the multiplication primitive was given the annotation that it _could_ take 4 cycles.
+- Figure 15b: Open the `main.dataplane.myqueue` dropdown, and navigate to cycle 305. The view shown in the figure can be seen on Threads 001-005 between cycle 305-374 (inclusive).
 - Figure 18: No navigation required.
 - Figure 19: No navigation required.
 - Figure 20: No navigation required.
