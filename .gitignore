@@ -22,5 +22,29 @@ target
 
 # emacs
 *~
+\#*
+*\#
+.\#*
 
 data
+
+# vagrant
+.vagrant/
+vagrant-cache
+
+# scratch directory
+sandbox
+
+# generated directories for case study reproduction
+outputs
+svgs
+petal-runs
+case-studies/results
+case-studies/logs
+performance-data
+
+# Vivado installer
+Xilinx_Unified_*Lin64.bin
+
+# Mac
+.DS_Store
