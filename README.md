@@ -18,9 +18,10 @@ We list the claims made in the paper and the parts of this artifact that support
 
 - In Section 7 of the paper under the paragraph "_Petal Profiling Performance_", we make the following claims about Petal's performance. These claims are supported by the artifact under the "Performance Comparison" section.
   > Most programs had 204–306 profiling probes inserted, except the forward feeding neural network (FFNN) program described in Section 10.1 which had 2830 probes.
-  > RTL tracing during simulation adds slightly less than a 2× overhead (compared to running a non-RTL tracing simulation) in all five programs.
-  > Compared to RTL tracing the original program, RTL tracing the instrumented program adds a <10% overhead for all five programs. For all non-FFNN programs, simulating the instrumented program with RTL tracing took less than 5 seconds, and the FFNN program took slightly less than 3 minutes.
-  > For four out of five programs (excluding the packet scheduling queues program in Section 10.2), trace reconstruction took one order of magnitude more time than non-tracing simulation of the original program. For the remaining program, trace reconstruction took two orders of magnitude longer. However, trace reconstruction took less than 8 minutes in all cases.
+  > RTL tracing during simulation adds 1.2 to 3.1x overhead (compared to running a non-RTL tracing simulation) through the five programs.
+  > Compared to RTL tracing the original program, RTL tracing the instrumented program adds a negligible overhead for all five programs. For all non-FFNN programs, simulating the instrumented program with RTL tracing took less than 5 seconds, and the FFNN program took slightly over 1 minute.
+  > In the FFNN program, trace reconstruction took 36% less time than simulating the original program. For all non-FFNN programs, trace reconstruction had a 2-10x overhead compared to simulating the original program. However, trace reconstruction took less than 15 seconds in all cases.
+  > The entire end-to-end profiling process took less than three minutes in all programs.
 
 - In Sections 10 and 11 we make claims about the reduced cycle counts of the programs within each case study. These claims are supported by the artifact under the "Case Study Reproduction" section.
 
@@ -229,11 +230,7 @@ This evaluation is focused on the post-place-and-route results rather than the s
 
 # Performance comparison (Estimated time: ~5 hours)
 
-Here, we will reproduce claims about the performance of Petal given in Section 7 under the paragraph "_Petal profiling performance_":
-> Most programs had 204–306 profiling probes inserted, except the forward feeding neural network (FFNN) program described in Section 10.1 which had 3026 probes.
-> RTL tracing during simulation adds slightly less than a 2× overhead (compared to running a non-RTL tracing simulation) in all five programs.
-> Compared to RTL tracing the original program, RTL tracing the instrumented program adds a <10% overhead for all five programs. For all non-FFNN programs, simulating the instrumented program with RTL tracing took less than 5 seconds, and the FFNN program took slightly less than 3 minutes.
-> For four out of five programs (excluding the packet scheduling queues program in Section 10.2), trace reconstruction took one order of magnitude more time than non-tracing simulation of the original program. For the remaining program, trace reconstruction took two orders of magnitude longer. However, trace reconstruction took less than 8 minutes in all cases.
+Here, we will reproduce claims about the performance of Petal given in Section 7 under the paragraph "_Petal profiling performance_".
 
 Run the `reproduce-performance.sh` script from the `calyx-profiler-eval` directory. This script runs performance benchmarks on the original versions of the five programs used in the case studies. The script takes an argument which is the path to the Calyx directory.
 
@@ -250,12 +247,12 @@ We explain each column of the CSV below. All times are in seconds.
 - `bl-with-vcd`: Time to run simulation with tracing on the original program.
 - `inst-with-vcd`: Time to run simulation with tracing on the instrumented program.
 - `trace-reconstruction`: Time to run trace reconstruction.
-- `profiler-e2e`: End-to-end time to run profiling.
+- `petal-e2e`: End-to-end time to run profiling.
 - `oh-vcd`: Overhead of simulation with tracing (`bl-with-vcd / bl-wo-vcd`)
-- `oh-inst`: Overhead of instrumentation when tracing (`inst-with-vcd / bl-with-vcd`)
+- `oh-inst`: Overhead of instrumentation when tracing (`inst-with-vcd / bl-wo-vcd`)
 - `oh-reconstruction`: Overhead of trace reconstruction with respect to non-tracing simulation of the original program (`trace-reconstruction / bl-wo-vcd`)
 
-Our version of the results is also available in `case-studies/paper-performance-results.csv`.
+Our version of the results is available in `case-studies/paper-performance-results.csv` for comparison.
 
 # Case Study Reproduction (Estimated running time: 15 minutes; estimated inspection time: 30 minutes)
 
