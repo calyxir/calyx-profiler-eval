@@ -146,7 +146,7 @@ sudo make install
     ln -s $(realpath ./target/debug/calyx) ~/.local/bin/calyx
 
     # install fud2
-    cargo install --path fud2
+    ln -s $(realpath ./target/debug/fud2) ~/.local/bin/fud2
     mkdir -p ~/.config
     echo 'dahlia = \"/home/vagrant/dahlia/fuse\"\n' > ~/.config/fud2.toml
     echo '[calyx]\nbase = \"/home/vagrant/calyx\"\n' >> ~/.config/fud2.toml
