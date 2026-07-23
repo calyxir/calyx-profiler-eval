@@ -2,7 +2,7 @@ if [ $# -lt 1 ]; then
     echo "USAGE: bash $0 CALYX_DIR [SKIP_FFNN_OPT]"
     echo "SKIP_FFNN_OPT is an optional input for skipping ffnn evaluations which are more intensive than the others."
     echo "To disable ffnn evaluations, run with the SKIP-FFNN argument:"
-    echo "bash $0 SKIP-FFNN"
+    echo "bash $0 ~/calyx SKIP-FFNN"
     exit
 fi
 

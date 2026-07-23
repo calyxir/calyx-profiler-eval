@@ -10,7 +10,9 @@ The evaluation consists of reproduction of figures and performance claims made i
 3. To reproduce the effects that cycle counts optimizations had resource usage and frequency.
 4. To show Petal's robustness.
 
-**NOTE:** Installing and running Vivado may be a lengthy and resource-intensive process (an upwards of 5 hours of install + running time and ~59GB of disk space), so we consider it optional. If a reviewer does not have the time or resources to install/run Vivado, they are free to skip the following sections: "Setting up Vivado", "Kick the tires" > "Vivado kick-the-tires", "Vivado result reproduction". These are marked as optional. 
+**NOTE:** Installing and running Vivado may be a lengthy and resource-intensive process (an upwards of 5 hours of install + running time and ~59GB of disk space), so we consider it optional. If a reviewer does not have the time or resources to install/run Vivado, they are free to skip the following sections: "Setting up Vivado", "Kick the tires" > "Vivado kick-the-tires", "Vivado result reproduction". These are marked as optional.
+
+**This README (especially the commands to run) may be easier to view through Github: https://github.com/calyxir/calyx-profiler-eval/**
 
 ### List of claims
 
@@ -31,11 +33,11 @@ We list the claims made in the paper and the parts of this artifact that support
 
 # Download & Installation
 
-The artifact is available in a Ubuntu 24.04 Virtual Machine packaged as an OVA file, of which a permanent link is available [here](). We assume that you are using [VirtualBox](https://www.virtualbox.org/); we used VirtualBox version 7.2.4. **The Virtual Machine's platform architecture is x86 and therefore the machine cannot be run on ARM-based Macs.** We also include instructions for building the virtual machine using Vagrant in the `vm` directory.
+The artifact is available in a Ubuntu 24.04 Virtual Machine packaged as an OVA file, of which a permanent link is available [on Zenodo](https://zenodo.org/records/21501772). We assume that you are using [VirtualBox](https://www.virtualbox.org/); we used VirtualBox version 7.2.4. **The Virtual Machine's platform architecture is x86 and therefore the machine cannot be run on ARM-based Macs.** We also include instructions for building the virtual machine using Vagrant in the `vm` directory.
 
 **The username is `vagrant`, and the password is `vagrant`.**
 
-**NOTE:** An internet connection is necessary for Vivado installation, opening Perfetto UI to view timeline views, and reading online documentation on Petal.
+**NOTE:** Verilator, Vivado, and Petal may be memory intensive, so you may need to increase memory on the Virtual Machine. An internet connection is necessary for Vivado installation, opening Perfetto UI to view timeline views, and reading online documentation on Petal.
 
 ### [Optional] Setting up Vivado (Requires ~59GB; Estimated time: 1.5-4 hours)
 
@@ -141,7 +143,8 @@ We list instructions for testing basic functionality of Petal and Vivado during 
 ```
 cd ~/calyx
 mkdir svgs petal-runs
-fud2 tests/correctness/pipelined-mac.futil -o svgs/pipelined-mac.svg --through petal -s sim.data=tests/correctness/pipelined-mac.futil.data --dir petal-runs/pipelined-mac
+fud2 tests/correctness/pipelined-mac.futil -o svgs/pipelined-mac.svg --through petal \
+     -s sim.data=tests/correctness/pipelined-mac.futil.data --dir petal-runs/pipelined-mac
 ```
 
 2. View the flame graph(s). A flattened flame graph should be created in `svgs/pipelined-mac.svg`. It should look like the below:
@@ -168,7 +171,9 @@ We will run commands to ensure that Vivado is properly set up.
 
 ```
 cd ~/calyx
-fud2 tests/correctness/pipelined-mac.futil --to json-report --through synth-verilog-to-util-json -o pipelined-mac-synth.json --dir vivado-runs/pipelined-mac
+fud2 tests/correctness/pipelined-mac.futil --to json-report \
+     --through synth-verilog-to-util-json \ 
+     -o pipelined-mac-synth.json --dir vivado-runs/pipelined-mac
 ```
 
 This will generate a `pipelined-mac-synth.json` file containing a summary of synthesis and post-place-and-route results.
@@ -230,7 +235,7 @@ This evaluation is focused on the post-place-and-route results rather than the s
 - **Reproducibility Guidelines**
   - [Optional] **Profiling with Petal**: Obtain profiling figures from an example program and perform an optimization.
 
-# Performance comparison (Estimated time: ~5 hours)
+# Performance comparison (Estimated time: 5-8 hours)
 
 Here, we will reproduce claims about the performance of Petal given in Section 7 under the paragraph "_Petal profiling performance_".
 
@@ -256,15 +261,29 @@ We explain each column of the CSV below. All times are in seconds.
 
 Our version of the results is available in `case-studies/paper-performance-results.csv` for comparison.
 
-# Case Study Reproduction (Estimated running time: 15 minutes; estimated inspection time: 30 minutes)
+**If you are pressed for time:** you can adjust the number of runs that hyperfine does for each benchmark by adding an optional `RUN_COUNT` command-line option. The default is 30 runs (+ 5 warmup runs which will be always run). For example, with the below command the benchmarks will each be run 15 times:
+
+```
+bash reproduce-performance.sh ~/calyx 15
+```
+
+# Case Study Reproduction (Estimated running time: 20 minutes; estimated inspection time: 30 minutes)
 
 Run the `run-case-studies.sh` script. This script runs Petal and Verilator in order to reproduce all resulting figures and cycle counts in the paper.
 
 ```
-bash run-case-studies.sh
+bash run-case-studies.sh ~/calyx
 ```
 
 Logs will be written to the `case-studies/logs` directory, and the script will report if any run failed. On a new run of the script, results from previous files will be removed.
+
+The Foward-feeding Neural Network program (FFNN; from Section 10.1) can be time intensive. If you find it necessary to skip its evaluation, you can pass in an optional argument to disable FFNN Verilator and Petal runs:
+
+```
+bash run-case-studies.sh ~/calyx SKIP-FFNN
+```
+
+If you run the script with this argument, please skip instructions for verifying Figure 14a, Figure 14b, and the cycle counts for the original and optimized versions of the FFNN program.
 
 ## Viewing Results
 
@@ -285,7 +304,7 @@ Flame graph figures in the paper:
 - Figure 4
   - Control groups are formatted slightly differently than what is in the paper. For example, `tdcc2 ~ L37:seq (ctrl)` would correspond to `seq @ line 37`. Additionally, `invoke_s10` is a compiler auto-generated group that corresponds to `run_s1`.
 - Figure 15
-- Figure 21
+- Figure 21a
 
 ### Timeline views
 
@@ -321,7 +340,8 @@ Many timeline view figures were based on a "zoomed-in" view. Here is a guide on 
 - Figure 20: No navigation required.
 - Figure 21b: Open the `main` dropdown, the `BL0028: while(spills != 0)` dropdown, the `BL0030: for(let y: ubit<32> = 1..9)` dropdown, and the `BL0031: for(let x: ubit<32> = 1..9)` dropdown. Then, navigate to cycle 1047. The iteration represented in the figure is in cycles 1047-1068 (inclusive).
   - Note: You may observe that there are iterations of the inner for loop that contain an empty gap where no line is active. This empty gap occurs when the guard in the preceding `if` is `false`. Calyx's `static-promotion` compiler pass allocates four cycles for each `if` and its corresponding body, but since the guard did not pass there was no activity on that specific cycle.
-d- Figure 21c: Open the `main` dropdown, the `BL0028: while(spills != 0)` dropdown, the `BL0030: for(let y: ubit<32> = 1..9)` dropdown, and the `BL0031: for(let x: ubit<32> = 1..9)` dropdown. Then, navigate to cycle 993. The iteration represented in the figure is in cycles 993-1008 (inclusive).
+d
+- Figure 21c: Open the `main` dropdown, the `BL0028: while(spills != 0)` dropdown, the `BL0030: for(let y: ubit<32> = 1..9)` dropdown, and the `BL0031: for(let x: ubit<32> = 1..9)` dropdown. Then, navigate to cycle 993. The iteration represented in the figure is in cycles 993-1008 (inclusive).
 
 ### Tables
 
@@ -343,14 +363,18 @@ We walk through steps to support the claim made in Section 10.2.3 in the paper:
 
 ```
 cd ~/Desktop/calyx-profiler-eval
-fud2 case-studies/sec-10/queues-original.futil --to json-report --through synth-verilog-to-util-json -o synth-results/queues-original-synth.json --dir vivado-runs/queues-original
+fud2 case-studies/sec-10/queues-original.futil --to json-report \
+     --through synth-verilog-to-util-json \
+     -o synth-results/queues-original-synth.json --dir vivado-runs/queues-original
 ```
 
 (2) Generate a JSON Vivado summary of the optimized program:
 
 ```
 cd ~/Desktop/calyx-profiler-eval
-fud2 case-studies/sec-10/queues-full-opt.futil --to json-report --through synth-verilog-to-util-json -o synth-results/queues-full-opt-synth.json --dir vivado-runs/queues-full-opt-synth
+fud2 case-studies/sec-10/queues-full-opt.futil --to json-report \
+     --through synth-verilog-to-util-json \
+     -o synth-results/queues-full-opt-synth.json --dir vivado-runs/queues-full-opt-synth
 ```
 
 (3) Check that post-place-and-route ("impl"), the number of LUTs of the optimized program is _lower_ than the number of LUTs in the original program.
@@ -390,7 +414,9 @@ First, we will _attempt_ to meet a clock period of 3.88. The `xdc-files` directo
 
 ```
 cd ~/Desktop/calyx-profiler-eval
-fud2 case-studies/sec-11/sandpile-original.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-original-3-88.json --dir vivado-runs/sandpile-original-3-88 -s synth-verilog.constraints=`pwd`/xdc-files/3-88.xdc
+fud2 case-studies/sec-11/sandpile-original.fuse --to json-report \
+     --through synth-verilog-to-util-json \
+     -o synth-results/sandpile-original-3-88.json --dir vivado-runs/sandpile-original-3-88 -s synth-verilog.constraints=`pwd`/xdc-files/3-88.xdc
 ```
 
 Then, we will find that place-and-route cannot meet that frequency by checking the `meet_timing` field (the output could also be null):
@@ -402,7 +428,9 @@ Then, we will find that place-and-route cannot meet that frequency by checking t
 Next, we will attempt to meet a clock period of 3.89.
 
 ```
-fud2 case-studies/sec-11/sandpile-original.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-original-3-89.json --dir vivado-runs/sandpile-original-3-89 -s synth-verilog.constraints=`pwd`/xdc-files/3-89.xdc
+fud2 case-studies/sec-11/sandpile-original.fuse --to json-report \
+     --through synth-verilog-to-util-json \
+     -o synth-results/sandpile-original-3-89.json --dir vivado-runs/sandpile-original-3-89 -s synth-verilog.constraints=`pwd`/xdc-files/3-89.xdc
 ```
 
 Then, we will find that place-and-route can meet that frequency:
@@ -425,7 +453,9 @@ First, we will _attempt_ to meet a clock period of 4.63. The `xdc-files` directo
 
 ```
 cd ~/Desktop/calyx-profiler-eval
-fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-optimized-4-63.json --dir vivado-runs/sandpile-optimized-4-63 -s synth-verilog.constraints=`pwd`/xdc-files/4-63.xdc
+fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report \
+     --through synth-verilog-to-util-json \
+     -o synth-results/sandpile-optimized-4-63.json --dir vivado-runs/sandpile-optimized-4-63 -s synth-verilog.constraints=`pwd`/xdc-files/4-63.xdc
 ```
 
 Then, we will find that place-and-route cannot meet that frequency by checking the `meet_timing` field  (the output could also be null):
@@ -437,7 +467,9 @@ Then, we will find that place-and-route cannot meet that frequency by checking t
 Next, we will attempt to meet a clock period of 4.64.
 
 ```
-fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report --through synth-verilog-to-util-json -o synth-results/sandpile-optimized-4-64.json --dir vivado-runs/sandpile-optimized-4-64 -s synth-verilog.constraints=`pwd`/xdc-files/4-64.xdc
+fud2 case-studies/sec-11/sandpile-optimized.fuse --to json-report \
+     --through synth-verilog-to-util-json -o synth-results/sandpile-optimized-4-64.json \
+     --dir vivado-runs/sandpile-optimized-4-64 -s synth-verilog.constraints=`pwd`/xdc-files/4-64.xdc
 ```
 
 Then, we will find that place-and-route can meet that frequency:
@@ -481,7 +513,7 @@ where
 
 ## [Optional] Profiling with Petal
 
-In this section, we will walk through an example of how to use Petal to observe the performance impact of changes to programs.
+In this section, we will walk through an example of how to use Petal to observe the performance impact of changes to programs. This optional experiment is an open-ended guide to show that Petal is **reusable** to find optimization opportunities in Calyx code.
 
 0. Choose a starting program (in Calyx/Dahlia/Calyx-Py) to optimize. In our example, we will use a Calyx matrix multiplication program, which can be found at `~/calyx/tests/firrtl/matrix_multiply.futil`.
 
@@ -491,7 +523,8 @@ ex)
 ```
 cd ~/calyx
 mkdir -p svgs petal-runs
-fud2 tests/firrtl/matrix_multiply.futil -o svgs/matrix_multiply.svg --through petal -s sim.data=tests/firrtl/matrix_multiply.futil.data --dir petal-runs/matrix_multiply
+fud2 tests/firrtl/matrix_multiply.futil -o svgs/matrix_multiply.svg --through petal \
+     -s sim.data=tests/firrtl/matrix_multiply.futil.data --dir petal-runs/matrix_multiply
 ```
 
 2. Once the command terminates, a `profiler-out` subdirectory should be created under the path passed under the `--dir` flag in the previous command. Open the scaled flame graph in a browser to observe the duration of various routines in the program.
@@ -528,7 +561,8 @@ If you are following our example, make the following modifications to `~/calyx/t
 
 ex)
 ```
-fud2 tests/firrtl/matrix_multiply.futil -o svgs/matrix_multiply_opt.svg --through petal -s sim.data=tests/firrtl/matrix_multiply.futil.data --dir petal-runs/matrix_multiply_opt
+fud2 tests/firrtl/matrix_multiply.futil -o svgs/matrix_multiply_opt.svg --through petal \
+     -s sim.data=tests/firrtl/matrix_multiply.futil.data --dir petal-runs/matrix_multiply_opt
 ```
 
 5. Observe the changes in the produced flame graph (and timeline view).
