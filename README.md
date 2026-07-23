@@ -10,7 +10,7 @@ The evaluation consists of reproduction of figures and performance claims made i
 3. To reproduce the effects that cycle counts optimizations had resource usage and frequency.
 4. To show Petal's robustness.
 
-**NOTE:** Installing and running Vivado may be a lengthy and resource-intensive process (an upwards of 5 hours of install + running time and ~59GB of disk space), so we consider it optional. If a reviewer does not have the time or resources to install/run Vivado, they are free to skip the following sections: `Setting up Vivado`, `Kick the tires` > `Vivado kick-the-tires`, `Vivado result reproduction`. These are marked as optional. 
+**NOTE:** Installing and running Vivado may be a lengthy and resource-intensive process (an upwards of 5 hours of install + running time and ~59GB of disk space), so we consider it optional. If a reviewer does not have the time or resources to install/run Vivado, they are free to skip the following sections: "Setting up Vivado", "Kick the tires" > "Vivado kick-the-tires", "Vivado result reproduction". These are marked as optional. 
 
 ### List of claims
 
@@ -25,13 +25,13 @@ We list the claims made in the paper and the parts of this artifact that support
 
 - In Sections 10 and 11 we make claims about the reduced cycle counts of the programs within each case study. These claims are supported by the artifact under the "Case Study Reproduction" section.
 
-- In Section 10.2.3 of the paper, we claim that both the original and final optimized versions of the packet scheduling queues program had a similar critical path and can meet a frequency of 143 MHz and the optimized version has a lower number of LUTs. This claim is supported by the artifact under the "Vivado result reproduction" > "Queues" section.
+- In Section 10.2.3 of the paper, we claim that both the original and final optimized versions of the packet scheduling queues program had a similar critical path and can meet a frequency of 143 MHz, and that the optimized version has a lower number of LUTs. This claim is supported by the artifact under the "Vivado result reproduction" > "Queues" section.
 
 - In Section 11 of the paper under the "_Solution_" paragraph, we claim that the optimized version of the sandpile program had a larger area and a lower maximum frequency than the original version, but that the end-to-end latency improved. This claim is supported by the artifact under the "Vivado Result Reproduction" > "Sandpile" section.
 
 # Download & Installation
 
-The artifact is available in a Ubuntu 24.04 Virtual Machine packaged as an OVA file, of which a permanent link is available [here](). We assume that you are using [VirtualBox](https://www.virtualbox.org/); we used VirtualBox version . **The Virtual Machine's platform architecture is x86 and therefore the machine cannot be run on ARM-based Macs.** We also include instructions for building the virtual machine using Vagrant in the `vm` directory.
+The artifact is available in a Ubuntu 24.04 Virtual Machine packaged as an OVA file, of which a permanent link is available [here](). We assume that you are using [VirtualBox](https://www.virtualbox.org/); we used VirtualBox version 7.2.4. **The Virtual Machine's platform architecture is x86 and therefore the machine cannot be run on ARM-based Macs.** We also include instructions for building the virtual machine using Vagrant in the `vm` directory.
 
 **The username is `vagrant`, and the password is `vagrant`.**
 
@@ -58,7 +58,7 @@ Our evaluation uses Xilinx's Vivado to generate area and timing estimates. Unfor
       - "Design Tools" > "DocNav"
       - "Devices" > "Install Devices for Kria SOMs and Starter Kits"
       - "Devices" > "Production Devices" > "SoCs" > "Zynq-7000 (limited support)"
-      - "Devices" > "Production Devices" > "SoCs" > "Zynq UltraScale+ RFSoC (limited support)" (This should be greyed out)
+      - "Devices" > "Production Devices" > "SoCs" > "Zynq UltraScale+ RFSoC (limited support)" (This should be grayed out)
       - "Devices" > "Production Devices" > "7 Series (limited support)" (Unchecking this will uncheck everything within it, which is what we want)
       - "Devices" > "Production Devices" > "UltraScale (limited support)" (Unchecking this will uncheck everything within it)
       - "Devices" > "Production Devices" > "UltraScale+ (limited support)" (Unchecking this will uncheck everything within it)
@@ -292,7 +292,7 @@ Flame graph figures in the paper:
 Timeline views are outputted as `*.pftrace` files that can be viewed in [Perfetto UI](https://ui.perfetto.dev/). Navigate to [https://ui.perfetto.dev/](https://ui.perfetto.dev/) in the firefox browser, and then click on `Open trace file` in the left navigation bar.
 
 *Key notes for navigation*
-- Each "milisecond" on the Perfetto view represents a cycle.
+- Each "millisecond" on the Perfetto view represents a cycle.
 - Press `W` for zooming in, `A` for navigating left, `D` for navigating right, and `S` for zooming out.
 - _Calyx timeline views_: There is a dropdown for each cell in the program. If the cell contains control groups, there will be another dropdown that contains all of the control groups,
 - _Dahlia timeline views_: Each code block (`for`, `if`) will have a corresponding dropdown.
@@ -483,7 +483,7 @@ In this section, we will walk through an example of how to use Petal to observe 
 
 0. Choose a starting program (in Calyx/Dahlia/Calyx-Py) to optimize. In our example, we will use a Calyx matrix multiplication program, which can be found at `~/calyx/tests/firrtl/matrix_multiply.futil`.
 
-1. Run Petal on the original program. Our example code is written in Calyx so we will use the `--through petal` flag to run only Calyx-level profiling. For Dahlia programs, one should use the `--through petal-dahlia` flag to run Dahlia and Calyx-level profiling, and for Calyx-Py, one should use the `--throug petal-calyx-py` flag to run Calyx-Py and Calyx-level profiling.
+1. Run Petal on the original program. Our example code is written in Calyx so we will use the `--through petal` flag to run only Calyx-level profiling. For Dahlia programs, one should use the `--through petal-dahlia` flag to run Dahlia and Calyx-level profiling, and for Calyx-Py, one should use the `--through petal-calyx-py` flag to run Calyx-Py and Calyx-level profiling.
 
 ex)
 ```
@@ -501,7 +501,7 @@ firefox petal-runs/matrix_multiply/profiler-out/scaled-flame.svg
 will show:
 ![Matrix Multiply Flame graph](figures/matrix_multiply_original.png)
 
-Hovering over the `main` box will tell us that the whole program took 1141 cycles. Through the flame graph, we also notice that there are two component cells (`main` and `mul_add [multiply_and_add]`) with noticable control overhead such as the length of the blank space above the `tdcc ~ L33:seq (ctrl)` box (to the left of the yellow `do_add` box). This overhead comes from registers that manage control within the component.
+Hovering over the `main` box will tell us that the whole program took 1141 cycles. Through the flame graph, we also notice that there are two component cells (`main` and `mul_add [multiply_and_add]`) with noticeable control overhead such as the length of the blank space above the `tdcc ~ L33:seq (ctrl)` box (to the left of the yellow `do_add` box). This overhead comes from registers that manage control within the component.
 
 Additionally, you can display the timeline view by going to [https://ui.perfetto.dev/](https://ui.perfetto.dev/) in the browser and opening `timeline_trace.pftrace` (In our example, the full path would be `petal-runs/matrix_multiply/profiler-out/timeline_trace.pftrace`.
 
