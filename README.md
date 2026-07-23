@@ -67,7 +67,7 @@ Our evaluation uses Xilinx's Vivado to generate area and timing estimates. Unfor
 10. Click "Install". Installation took us 1.5 hours, but it can take anywhere from 2-4 hours. The machine may periodically go into sleep, so it's important to watch over it.
 
 <details>
-<summary>**Troubleshooting common VM problems:**</summary>
+<summary><b>Troubleshooting common VM problems:</b></summary>
 
 - If you run out of disk space while installing Vivado tools, you will need to clear space on the host machine. The VM is configured to use a dynamically sized disk.
 
@@ -129,7 +129,7 @@ Descriptions for subdirectories and scripts within this repository are as follow
 - `reproduce-performance.sh`: Script to run performance benchmarking in the `Performance comparison` section.
 - `run-case-studies.sh`: Script to reproduce case study and example figures in the `Case study reproduction` section.
 
-The Calyx repository is located in `~/calyx`, and the source code for Petal is located in `~/calyx/tools/petal`.
+The Calyx repository is located in `~/calyx`, and the source code for Petal is located in `~/calyx/tools/petal`. While this artifact assumes usage of a VM, instructions to install and set up Petal, Calyx, Dahlia, and fud2 locally can be found at [https://docs.calyxir.org/](https://docs.calyxir.org/).
 
 # Kick the tires
 
@@ -158,7 +158,7 @@ A scaled flame graph should also be created in `petal-runs/pipelined-mac/profile
 
 (NOTE: There may be a small discrepancy on what the main component is named; it could be `toplevel.main`, `TOP.toplevel.main`, or something similar. In this writeup we will use `main`.)
 
-Both `main` and `main.mac` are dropdowns, and clicking on them will reveal activity of groups/control within the component. Check that you can navigate the Perfetto view (Press `W` for zooming in, `A` for navigating left, `D` for navigating right, and `S` for zooming out).
+Both the white `main` and `main.mac` tracks on the left under "Default Workspace" are dropdowns, and clicking on them will reveal activity of groups/control within the component. Check that you can navigate the Perfetto view (Press `W` for zooming in, `A` for navigating left, `D` for navigating right, and `S` for zooming out).
 
 ### [Optional] Vivado kick-the-tires (Estimated time: <5 minutes)
 
@@ -294,7 +294,7 @@ Timeline views are outputted as `*.pftrace` files that can be viewed in [Perfett
 *Key notes for navigation*
 - Each "millisecond" on the Perfetto view represents a cycle.
 - Press `W` for zooming in, `A` for navigating left, `D` for navigating right, and `S` for zooming out.
-- _Calyx timeline views_: There is a dropdown for each cell in the program. If the cell contains control groups, there will be another dropdown that contains all of the control groups,
+- _Calyx timeline views_: There is a dropdown for each cell in the program. Opening it will display a track for Control Register Updates (if there are any), another dropdown that contains all of the control groups (if the cell contains control groups), and tracks representing each thread in the cell.
 - _Dahlia timeline views_: Each code block (`for`, `if`) will have a corresponding dropdown.
 
 Many timeline view figures were based on a "zoomed-in" view. Here is a guide on how to get the picture represented in each figure:
@@ -336,7 +336,8 @@ To reproduce post-place-and-route results, we will run synthesis and implementat
 
 ### Queues (Section 10.2; Estimated time: ~10 min)
 
-We walk through steps to support the claim made in Section 10.2.3 in the paper: both the original and final optimized versions of the packet scheduling queues program had a similar critical path and can meet a frequency of 143 MHz and the optimized version has a lower number of LUTs.
+We walk through steps to support the claim made in Section 10.2.3 in the paper:
+> both the original and final optimized versions of the packet scheduling queues program had a similar critical path and can meet a frequency of 143 MHz and the optimized version has a lower number of LUTs.
 
 (1) Generate a JSON Vivado summary of the original program:
 
@@ -380,7 +381,8 @@ fud2 case-studies/sec-10/queues-full-opt.futil --to json-report --through synth-
 
 ### Sandpile (Section 11; Estimated time: 20 min)
 
-We walk through steps to support the claim made in Section 11 of the paper under the "_Solution_" paragraph: the optimized version of the sandpile program had a larger area and a lower maximum frequency than the original version, but that the end-to-end latency improved.
+We walk through steps to support the claim made in Section 11 of the paper under the "_Solution_" paragraph:
+> the optimized version of the sandpile program had a larger area and a lower maximum frequency than the original version, but that the end-to-end latency improved.
 
 1. Identify the maximum frequency and end-to-end latency of the original program. (~10 minutes)
 
@@ -503,9 +505,9 @@ will show:
 
 Hovering over the `main` box will tell us that the whole program took 1141 cycles. Through the flame graph, we also notice that there are two component cells (`main` and `mul_add [multiply_and_add]`) with noticeable control overhead such as the length of the blank space above the `tdcc ~ L33:seq (ctrl)` box (to the left of the yellow `do_add` box). This overhead comes from registers that manage control within the component.
 
-Additionally, you can display the timeline view by going to [https://ui.perfetto.dev/](https://ui.perfetto.dev/) in the browser and opening `timeline_trace.pftrace` (In our example, the full path would be `petal-runs/matrix_multiply/profiler-out/timeline_trace.pftrace`.
+Additionally, you can display the timeline view by going to [https://ui.perfetto.dev/](https://ui.perfetto.dev/) in the browser and opening `timeline_trace.pftrace` (In our example, the full path would be `petal-runs/matrix_multiply/profiler-out/timeline_trace.pftrace`).
 
-3. Modify the program. In our example, we will make a simple optimization to remove the control overhead in the `mul_add [multiply_and_add]` cell (the blank space mentioned in Step 2). To do so, we will add annotations hinting to the Calyx compiler that the groups in the `multiply_and_add` component will always take a fixed number of cycles and therefore control registers (and any control groups) are not necessary.
+3. Modify the program. In our example, we will make a simple optimization to remove the control overhead in the `mul_add [multiply_and_add]` cell (the blank space mentioned in Step 2). To do so, we will add annotations hinting to the Calyx compiler that the groups in the `multiply_and_add` component will always take a fixed number of cycles and therefore control registers (and any control groups) are not necessary. (We can use `group-stats.csv` to first get the sense that the two groups consistently take the same amount of cycles respectively, and then reason through the source code that they actually would always take a fixed number of cycles.)
 
 If you are following our example, make the following modifications to `~/calyx/tests/firrtl/matrix_multiply.futil`:
 
@@ -539,3 +541,5 @@ will show:
 ![Matrix multiply flame graph after small optimization](figures/matrix_multiply_quick_opt.png)
 
 Hovering over the `main` box shows that the total number of cycles is now 1013, meaning our small optimization removed 101 cycles from the original program. We can also notice that the control group in `mul_add` (the orange `tdcc ~ L33:seq (ctrl)` in the original program) no longer exists because the groups in `multiply_and_add` only need static control. Another indication that we removed all control register overhead in the `multiply_and_add` component is that the length of the `mul_add [multiply_and_add]` box is equal to the added length of the `do_add` and `do_mul` boxes, which means that all of those cycles were spent on meaningful computation.
+
+Congratulations! You've successfully optimized a Calyx program using performance information obtained by Petal.
