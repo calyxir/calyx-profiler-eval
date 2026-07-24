@@ -261,7 +261,7 @@ We explain each column of the CSV below. All times are in seconds.
 
 Our version of the results is available in `case-studies/paper-performance-results.csv` for comparison.
 
-**To reduce the amount of time this experiment takes** you can adjust the number of runs that hyperfine does for each benchmark by adding an optional `RUN_COUNT` command-line option. The default is 30 runs (+ 5 warmup runs which will be always run). For example, with the below command the benchmarks will each be run 15 times:
+**To reduce the amount of time this experiment takes** you can adjust the number of runs that hyperfine does for each benchmark by adding an optional `RUN_COUNT` command-line option. `RUN_COUNT` needs to be > 1. The default is 30 runs (+ 5 warmup runs which will be always run). For example, with the below command the benchmarks will each be run 15 times:
 
 ```
 bash reproduce-performance.sh ~/calyx 15
