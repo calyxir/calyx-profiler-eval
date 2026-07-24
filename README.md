@@ -235,7 +235,7 @@ This evaluation is focused on the post-place-and-route results rather than the s
 - **Reproducibility Guidelines**
   - [Optional] **Profiling with Petal**: Obtain profiling figures from an example program and perform an optimization.
 
-# Performance comparison (Estimated time: 5-8 hours)
+# Performance comparison (Estimated time: 5+ hours)
 
 Here, we will reproduce claims about the performance of Petal given in Section 7 under the paragraph "_Petal profiling performance_".
 
@@ -261,7 +261,7 @@ We explain each column of the CSV below. All times are in seconds.
 
 Our version of the results is available in `case-studies/paper-performance-results.csv` for comparison.
 
-**If you are pressed for time:** you can adjust the number of runs that hyperfine does for each benchmark by adding an optional `RUN_COUNT` command-line option. The default is 30 runs (+ 5 warmup runs which will be always run). For example, with the below command the benchmarks will each be run 15 times:
+**To reduce the amount of time this experiment takes** you can adjust the number of runs that hyperfine does for each benchmark by adding an optional `RUN_COUNT` command-line option. The default is 30 runs (+ 5 warmup runs which will be always run). For example, with the below command the benchmarks will each be run 15 times:
 
 ```
 bash reproduce-performance.sh ~/calyx 15
