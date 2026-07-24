@@ -12,7 +12,7 @@ The evaluation consists of reproduction of figures and performance claims made i
 
 **NOTE:** Installing and running Vivado may be a lengthy and resource-intensive process (an upwards of 5 hours of install + running time and ~59GB of disk space), so we consider it optional. If a reviewer does not have the time or resources to install/run Vivado, they are free to skip the following sections: "Setting up Vivado", "Kick the tires" > "Vivado kick-the-tires", "Vivado result reproduction". These are marked as optional.
 
-**This README (especially the commands to run) may be easier to view through Github: https://github.com/calyxir/calyx-profiler-eval/**
+**If you are viewing this README as an external PDF, the contents (especially the commands to run) may be easier to view through Github: https://github.com/calyxir/calyx-profiler-eval/**
 
 ### List of claims
 
