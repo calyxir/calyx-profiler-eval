@@ -267,6 +267,16 @@ Our version of the results is available in `case-studies/paper-performance-resul
 bash reproduce-performance.sh ~/calyx 15
 ```
 
+You can also disable certain case study programs (ex. FFNN which will take more time) from the performance evaluation by adding a `#` in front of the line listing the program in `case-studies/performance-benchmark-order.txt`. For example, if `case-studies/performance-benchmark-order.txt` had the following contents, the `reproduce-performance.sh` script will not run the FFNN program:
+
+```
+sec-09/linear-algebra-2mm.fuse;sec-09/linear-algebra-2mm.data
+sec-09/linear-algebra-3mm.fuse;sec-09/linear-algebra-3mm.data
+sec-11/sandpile-original.fuse;sec-11/sandpile.data
+sec-10/queues-original.py;sec-10/queues.data
+#sec-10/ffnn-original.futil;sec-10/ffnn.data
+```
+
 # Case Study Reproduction (Estimated running time: 20 minutes; estimated inspection time: 30 minutes)
 
 Run the `run-case-studies.sh` script. This script runs Petal and Verilator in order to reproduce all resulting figures and cycle counts in the paper.
