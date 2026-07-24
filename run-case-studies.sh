@@ -1,3 +1,20 @@
+if [ $# -lt 1 ]; then
+    echo "USAGE: bash $0 CALYX_DIR [SKIP_FFNN_OPT]"
+    echo "SKIP_FFNN_OPT is an optional input for skipping ffnn evaluations which are more intensive than the others."
+    echo "To disable ffnn evaluations, run with the SKIP-FFNN argument:"
+    echo "bash $0 SKIP-FFNN"
+    exit
+fi
+
+CALYX_DIR=$1
+RUSTED_PETAL=${CALYX_DIR}/target/release/petal
+if [ ! -e ${RUSTED_PETAL} ]; then
+    echo "Petal needs to be compiled in release mode! Run `cargo build --all --release` from ${CALYX_DIR}."
+    exit 1
+fi
+
+SKIP_FFNN_OPT=$2
+
 SCRIPT_DIR=$( cd $( dirname $0 ) && pwd )
 CASE_STUDIES_DIR=${SCRIPT_DIR}/case-studies
 RESULTS_DIR=${CASE_STUDIES_DIR}/results
@@ -5,6 +22,7 @@ LOGS_DIR=${CASE_STUDIES_DIR}/logs
 echo "===CASE STUDY DATA CREATION==="
 echo "Results will be written to ${RESULTS_DIR}"
 echo "Logs will be writen to: ${LOGS_DIR}"
+echo "Petal location: ${RUSTED_PETAL}"
 echo
 
 rm -rf ${RESULTS_DIR}; mkdir -p ${RESULTS_DIR}
@@ -63,7 +81,7 @@ function reproduce_section_3() {
 
 	# Run petal on original program
 	echo -e "\tRunning Petal on optimized switch-case program..."
-	run_cmd "fud2 switch-case-par.futil -o svgs/switch-case-par.svg --through petal -s sim.data=switch-case.data --dir petal-runs/switch-case-par" ${sec}-petal-switch-case.txt
+	run_cmd "fud2 switch-case-par.futil -o svgs/switch-case-par.svg --through petal -s sim.data=switch-case.data --dir petal-runs/switch-case-par -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-switch-case.txt
 	# copy flame graph for easier viewing (Figure 4: switch-case example flame graph)
 	cp petal-runs/switch-case-par/profiler-out/scaled-flame.svg ${RESULTS_DIR}/fig-4.svg
 	# copy timeline view for easier viewing (Figure 5: switch-case example timeline view)
@@ -80,7 +98,7 @@ function reproduce_section_8() {
 	setup_dir
 	echo -e "\tRunning Petal on example Dahlia program..."
 	# Run petal on Dahlia program
-	run_cmd "fud2 dahlia-example.fuse -o svgs/dahlia-example.svg --through petal-dahlia -s sim.data=dahlia-example.fuse.data --dir petal-runs/dahlia-example" ${sec}-petal-dahlia-example.txt
+	run_cmd "fud2 dahlia-example.fuse -o svgs/dahlia-example.svg --through petal-dahlia -s sim.data=dahlia-example.fuse.data --dir petal-runs/dahlia-example -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-dahlia-example.txt
 	# copy timeline view for easier viewing (Figure 9d: Calyx timeline view for example Dahlia program)
 	cp petal-runs/dahlia-example/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-9d.pftrace
 	# copy timeline view for easier viewing (Figure 9e: Dahlia timeline view for example Dahlia program)
@@ -98,25 +116,25 @@ function reproduce_section_9() {
 	
 	# Run Petal on linear-algebra-2mm
 	echo -e "\tRunning Petal on linear-algebra-2mm (static promotion enabled)..."
-	run_cmd "fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm.svg --through petal-dahlia -s sim.data=linear-algebra-2mm.data --dir petal-runs/linear-algebra-2mm -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d group2seq\"" ${sec}-petal-2mm-sp-enabled.txt
+	run_cmd "fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm.svg --through petal-dahlia -s sim.data=linear-algebra-2mm.data --dir petal-runs/linear-algebra-2mm -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d group2seq\"  -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-2mm-sp-enabled.txt
 	# copy timeline view for easier viewing (Figure 12: Zoomed in timeline view with static promotion)
 	cp petal-runs/linear-algebra-2mm/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-12.pftrace
 	
 	# Run Petal on linear-algebra-2mm without static promotion
 	echo -e "\tRunning Petal on linear-algebra-2mm (static promotion disabled)..."
-	run_cmd "fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm-disable-static-promotion.svg --through petal-dahlia -s sim.data=linear-algebra-2mm.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d static-promotion -d group2seq\" --dir petal-runs/linear-algebra-2mm-disable-static-promotion" ${sec}-petal-2mm-sp-disabled.txt
+	run_cmd "fud2 linear-algebra-2mm.fuse -o svgs/linear-algebra-2mm-disable-static-promotion.svg --through petal-dahlia -s sim.data=linear-algebra-2mm.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d static-promotion -d group2seq\" --dir petal-runs/linear-algebra-2mm-disable-static-promotion  -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-2mm-sp-disabled.txt
 	# copy timeline view for easier viewing (Figure 10: Zoomed in timeline view without static promotion)
 	cp petal-runs/linear-algebra-2mm-disable-static-promotion/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-10.pftrace
 	
 	# Run Petal on linear-algebra-3mm
 	echo -e "\tRunning Petal on linear-algebra-3mm (resource sharing enabled)..."
-	run_cmd "fud2 linear-algebra-3mm.fuse -o svgs/linear-algebra-3mm.svg --through petal-dahlia -s sim.data=linear-algebra-3mm.data --dir petal-runs/linear-algebra-3mm" ${sec}-petal-3mm-rs-enabled.txt
+	run_cmd "fud2 linear-algebra-3mm.fuse -o svgs/linear-algebra-3mm.svg --through petal-dahlia -s sim.data=linear-algebra-3mm.data --dir petal-runs/linear-algebra-3mm  -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-3mm-rs-enabled.txt
 	# copy timeline view for easier viewing (Figure 13a: Full timeline view for linear-algebra-3mm with resource sharing)
 	cp petal-runs/linear-algebra-3mm/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-13a.pftrace
 	
 	# Run Petal on linear-algebra-3mm without resource sharing
 	echo -e "\tRunning Petal on linear-algebra-3mm (resource sharing disabled)..."
-	run_cmd "fud2 linear-algebra-3mm.fuse -o svgs/linear-algebra-3mm-disable-cell-share.svg --through petal-dahlia -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d cell-share\" -s sim.data=linear-algebra-3mm.data --dir petal-runs/linear-algebra-3mm-disable-cell-share" ${sec}-petal-3mm-rs-disabled.txt
+	run_cmd "fud2 linear-algebra-3mm.fuse -o svgs/linear-algebra-3mm-disable-cell-share.svg --through petal-dahlia -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d cell-share\" -s sim.data=linear-algebra-3mm.data --dir petal-runs/linear-algebra-3mm-disable-cell-share  -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-3mm-rs-disabled.txt
 	# copy timeline view for easier viewing (Figure 13b: Full timeline view for linear-algebra-3mm without resource sharing)
 	cp petal-runs/linear-algebra-3mm-disable-cell-share/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-13b.pftrace
     )
@@ -152,46 +170,52 @@ function reproduce_section_10() {
 	cd ${CASE_STUDIES_DIR}/${sec}
 	setup_dir
 
-	# ffnn Verilator runs for unified cycle collection
-	echo -e "\tRunning Verilator on ffnn (original)..."
-	run_cmd "fud2 ffnn-original.futil -o outputs/ffnn-original.json --through verilator -s sim.data=ffnn.data -s calyx.args=\"-d papercut -d cell-share -d group2seq\"" ${sec}-verilator-ffnn-original.txt
-	echo "ffnn-original,"$( get_cycles outputs/ffnn-original.json ) >> ${CYCLE_COUNTS_RES}
-	
-	echo -e "\tRunning Verilator on ffnn (optimized)..."
-	run_cmd "fud2 ffnn-optimized.futil -o outputs/ffnn-optimized.json --through verilator -s sim.data=ffnn.data -s calyx.args=\"-d papercut -d cell-share -d group2seq\"" ${sec}-verilator-ffnn-original.txt
-	echo "ffnn-optimized,"$( get_cycles outputs/ffnn-optimized.json ) >> ${CYCLE_COUNTS_RES}
+	# Run FFNN if we did not specify to skip it.
+	if [[ "${SKIP_FFNN_OPT}" != "SKIP-FFNN" ]]; then
+	    # ffnn Verilator runs for unified cycle collection
+	    echo -e "\tRunning Verilator on ffnn (original)..."
+	    run_cmd "fud2 ffnn-original.futil -o outputs/ffnn-original.json --through verilator -s sim.data=ffnn.data -s calyx.args=\"-d papercut -d cell-share -d group2seq\"" ${sec}-verilator-ffnn-original.txt
+	    echo "ffnn-original,"$( get_cycles outputs/ffnn-original.json ) >> ${CYCLE_COUNTS_RES}
+	    
+	    echo -e "\tRunning Verilator on ffnn (optimized)..."
+	    run_cmd "fud2 ffnn-optimized.futil -o outputs/ffnn-optimized.json --through verilator -s sim.data=ffnn.data -s calyx.args=\"-d papercut -d cell-share -d group2seq\"" ${sec}-verilator-ffnn-original.txt
+	    echo "ffnn-optimized,"$( get_cycles outputs/ffnn-optimized.json ) >> ${CYCLE_COUNTS_RES}
 
-	# ffnn Petal runs
-	# NOTE: Maybe worth adding an option to disable ffnn runs because this will take a while.
-	echo -e "\tRunning Petal on ffnn (original)..."
-	run_cmd "fud2 ffnn-original.futil -o svgs/ffnn-original.svg --through petal -s sim.data=ffnn.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share -d group2seq\" --dir petal-runs/ffnn-original" ${sec}-petal-ffnn-original.txt
-	# copy timeline view for easier viewing (Figure 14a: Zoomed in timeline view before optimization)
-	cp petal-runs/ffnn-original/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-14a.pftrace
-	# copy group table for easier viewing (Table 1: Snippet of group statistics obtained from ffnn (bb_1-6))
-	cp petal-runs/ffnn-original/profiler-out/group-stats.csv ${RESULTS_DIR}/table1.csv
+	    # ffnn Petal runs
+	    echo -e "\tRunning Petal on ffnn (original)..."
+	    run_cmd "fud2 ffnn-original.futil -o svgs/ffnn-original.svg --through petal -s sim.data=ffnn.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share -d group2seq\" --dir petal-runs/ffnn-original  -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-ffnn-original.txt
+	    # copy timeline view for easier viewing (Figure 14a: Zoomed in timeline view before optimization)
+	    cp petal-runs/ffnn-original/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-14a.pftrace
+	    # copy group table for easier viewing (Table 1: Snippet of group statistics obtained from ffnn (bb_1-6))
+	    cp petal-runs/ffnn-original/profiler-out/group-stats.csv ${RESULTS_DIR}/table1.csv
+	    
+	    # Run Petal on optimized ffnn program
+	    echo -e "\tRunning Petal on ffnn (optimized)..."
+	    run_cmd "fud2 ffnn-optimized.futil -o svgs/ffnn-optimized.svg --through petal -s sim.data=ffnn.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share -d group2seq\" --dir petal-runs/ffnn-optimized  -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-ffnn-optimized.txt
+	    # copy timeline view for easier viewing (Figure 14b: Zoomed in timeline view after optimization)
+	    cp petal-runs/ffnn-optimized/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-14b.pftrace
+
+	else
+	    echo -e "\tSKIP-FFNN argument was passed in; SKIPPING FFNN case study reproduction! (Producing Figure 14a, Figure 14b, and the cycle counts for ffnn)"
+	fi
 	
-	# Run Petal on optimized ffnn program
-	echo -e "\tRunning Petal on ffnn (optimized)..."
-	run_cmd "fud2 ffnn-optimized.futil -o svgs/ffnn-optimized.svg --through petal -s sim.data=ffnn.data -s profiler.compilation-passes=\"-p pre-opt -p compile -p post-opt -p lower -d papercut -d cell-share -d group2seq\" --dir petal-runs/ffnn-optimized" ${sec}-petal-ffnn-optimized.txt
-	# copy timeline view for easier viewing (Figure 14b: Zoomed in timeline view after optimization)
-	cp petal-runs/ffnn-optimized/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-14b.pftrace
 
 	###########################
 	
 	# Example while program: Petal runs
 	echo -e "\tRunning Petal on example while program (original)..."
 	# Run Petal on original example while program
-	run_cmd "fud2 while-original.futil -o svgs/while-original.svg --through petal -s sim.data=while.data --dir petal-runs/while-original" ${sec}-petal-while-original.txt
+	run_cmd "fud2 while-original.futil -o svgs/while-original.svg --through petal -s sim.data=while.data --dir petal-runs/while-original  -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-while-original.txt
 	# copy timeline view for easier viewing (Figure 18: Timeline view of example while program)
 	cp petal-runs/while-original/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-18.pftrace
 	
 	echo -e "\tRunning Petal on example while program (manually transformed)..."
-	run_cmd "fud2 while-manual.futil -o svgs/while-manual.svg --through petal -s sim.data=while.data --dir petal-runs/while-manual" ${sec}-petal-while-manual.txt
+	run_cmd "fud2 while-manual.futil -o svgs/while-manual.svg --through petal -s sim.data=while.data --dir petal-runs/while-manual -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-while-manual.txt
 	# copy timeline view for easier viewing (Figure 19: Timeline view of manually transformed while program)
 	cp petal-runs/while-manual/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-19.pftrace
 
 	echo -e "\tRunning Petal on example while program (optimized)..."
-	run_cmd "fud2 while-optimized.futil -o svgs/while-optimized.svg --through petal -s sim.data=while.data --dir petal-runs/while-optimized" ${sec}-petal-while-optimized.txt
+	run_cmd "fud2 while-optimized.futil -o svgs/while-optimized.svg --through petal -s sim.data=while.data --dir petal-runs/while-optimized -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-while-optimized.txt
 	# copy timeline view for easier viewing (Figure 20: Timeline view of par optimized while program)
 	cp petal-runs/while-optimized/profiler-out/timeline_trace.pftrace ${RESULTS_DIR}/fig-20.pftrace
 
@@ -217,7 +241,7 @@ function reproduce_section_10() {
 	echo "queues-optimized,"$( get_cycles outputs/queues-full-opt.json ) >> ${CYCLE_COUNTS_RES}
 
 	echo -e "\tRunning Petal on queues (original)..."
-	run_cmd "fud2 queues-original.futil -o svgs/queues-original.svg --through petal -s sim.data=queues.data --dir petal-runs/queues-original" ${sec}-petal-queues-original.txt
+	run_cmd "fud2 queues-original.futil -o svgs/queues-original.svg --through petal -s sim.data=queues.data --dir petal-runs/queues-original  -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-queues-original.txt
 	# copy timeline view for easier viewing (Figure 15a: Flame graph of the packet scheduling program)
 	cp petal-runs/queues-original/profiler-out/scaled-flame.svg ${RESULTS_DIR}/fig-15a.svg
 	# copy timeline view for easier viewing (Figure 15b: Timeline of groups active during one call of the myqueue cell)
@@ -241,14 +265,14 @@ function reproduce_section_11() {
 	echo "sandpile-optimized,"$( get_cycles outputs/sandpile-optimized.json ) >> ${CYCLE_COUNTS_RES}
 
  	echo -e "\tRunning Petal on sandpile (original)..."
-	run_cmd "fud2 sandpile-original.fuse -o svgs/sandpile-original.svg --through petal-dahlia -s sim.data=sandpile.data --dir petal-runs/sandpile-original" ${sec}-petal-sandpile-original.txt
+	run_cmd "fud2 sandpile-original.fuse -o svgs/sandpile-original.svg --through petal-dahlia -s sim.data=sandpile.data --dir petal-runs/sandpile-original  -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-sandpile-original.txt
 	# Copy flame graph for easier viewing (Figure 21a: Flame graph of original sandpile program)
 	cp petal-runs/sandpile-original/profiler-out/dahlia-scaled-flame.svg ${RESULTS_DIR}/fig-21a.svg
 	# Copy timeline view for easier viewing (Figure 21b: Timeline view of inner for loop iteration in the original program)
 	cp petal-runs/sandpile-original/profiler-out/dahlia_timeline_trace.pftrace ${RESULTS_DIR}/fig-21b.pftrace
 	
  	echo -e "\tRunning Petal on sandpile (optimized)..."
-	run_cmd "fud2 sandpile-optimized.fuse -o svgs/sandpile-optimized.svg --through petal-dahlia -s sim.data=sandpile.data --dir petal-runs/sandpile-optimized" ${sec}-petal-sandpile-optimized.txt
+	run_cmd "fud2 sandpile-optimized.fuse -o svgs/sandpile-optimized.svg --through petal-dahlia -s sim.data=sandpile.data --dir petal-runs/sandpile-optimized -s rusted_petal=${RUSTED_PETAL}" ${sec}-petal-sandpile-optimized.txt
 	# Copy timeline view for easier viewing (Figure 21c: Timeline view of inner for loop iteration in optimized program)
 	cp petal-runs/sandpile-optimized/profiler-out/dahlia_timeline_trace.pftrace ${RESULTS_DIR}/fig-21c.pftrace
     )

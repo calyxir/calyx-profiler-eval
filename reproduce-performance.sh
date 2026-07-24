@@ -1,5 +1,7 @@
 if [ $# -lt 1 ]; then
-    echo "USAGE: bash $0 CALYX_DIR"
+    echo "USAGE: bash $0 CALYX_DIR [RUN_COUNT]"
+    echo "RUN_COUNT is an optional argument to specify the number of benchmarking runs"
+    echo "Hyperfine will do 5 warmup runs (not counted in the benchmarking) before running Petal RUN_COUNT times"
     exit
 fi
 
@@ -26,7 +28,12 @@ LOGS_DIR=${DATA_DIR}/logs
 SCRATCH_DIR=${DATA_DIR}/scratch
 
 WARMUP_COUNT=5 # set to 5 after testing.
-RUN_COUNT=30 # set to 30 after testing.
+if [[ -z "$2" ]]; then
+    RUN_COUNT=30 # set to 30 after testing.
+else
+    RUN_COUNT="$2"
+fi
+echo ===="RUN_COUNT: ${RUN_COUNT}. Each experiment will be run ${RUN_COUNT} times."
 
 
 # create new data directory
